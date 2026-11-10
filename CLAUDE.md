@@ -16,15 +16,17 @@ Vite 8 + React 19 + TypeScript 7, Vitest 5 + Testing Library (jsdom), tesseract.
 - Test: `npx vitest run`
 - Typecheck + build: `npm run build`
 - Lint: `npm run lint`
+- Deploy: push lên `main` (Vercel tự build), hoặc `npx vercel deploy --prod`. Production: https://spelling-bee-blue.vercel.app
 
 ## Cấu trúc thư mục
 - `src/lib/` – logic thuần: `words.ts` (tách/chuẩn hóa từ), `storage.ts`, `oxford.ts` (parse HTML Oxford), `lookup.ts` (gom dữ liệu + cache), `translate.ts`, `images.ts`, `audio.ts`, `ocr.ts`, `fetchProxy.ts`.
 - `src/components/` – UI: `WordInput`, `PhotoImport` (dùng `Sheet`), `WordCard` (kéo-thả), `WordDetail` (khối thay chỗ header, không phải popup), `FitText` (chữ một dòng, tự thu nhỏ).
 - `src/data/emoji-index.json` – bảng từ → emoji 3D (file sinh ra); `scripts/` – script dựng bảng + `emoji-overrides.json`.
 - `public/` – manifest, service worker, icon.
+- `api/oxford.ts` – hàm serverless Vercel `GET /api/oxford?q=word` (logic ở `src/server/oxfordProxy.ts`): lấy trang Oxford phía server, cache CDN 1 ngày. Import trong `api/` phải có đuôi `.js` (Node ESM).
 
 ## Quy tắc then chốt
-- Không có backend: mọi gọi mạng từ trình duyệt; trang Oxford phải đi qua CORS proxy (`fetchProxy.ts`), mp3 Oxford phát trực tiếp.
+- Gần như không có backend: bản production dùng hàm `/api/oxford` của chính app để lấy trang Oxford; hàm lỗi hoặc chạy local thì dùng CORS proxy công cộng (`fetchProxy.ts`). mp3 Oxford phát trực tiếp.
 - Luôn có đường dự phòng: dictionaryapi.dev → Web Speech API (spec mục Nguồn dữ liệu).
 - Logic mạng/parse viết thuần trong `src/lib`, test bằng HTML/JSON mẫu, không gọi mạng thật trong test.
 

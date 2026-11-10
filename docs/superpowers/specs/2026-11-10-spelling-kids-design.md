@@ -16,7 +16,7 @@ Web app chỉ có frontend (không backend) cho trẻ 5–10 tuổi: nhập từ
 ## Nguồn dữ liệu (đều gọi từ trình duyệt)
 | Dữ liệu | Nguồn chính | Dự phòng |
 |---|---|---|
-| Phát âm, từ loại, phiên âm, định nghĩa EN | Trang Oxford `/search/english/direct/?q=` lấy qua CORS proxy (allorigins, tự đổi proxy khi lỗi) và đọc `data-src-mp3`, `.pos`, `.phon`, `.def` | dictionaryapi.dev; cuối cùng là Web Speech API |
+| Phát âm, từ loại, phiên âm, định nghĩa EN | Trang Oxford `/search/english/direct/?q=` lấy qua hàm `/api/oxford` của app trên Vercel (production), dự phòng bằng CORS proxy (allorigins, tự đổi proxy khi lỗi) và đọc `data-src-mp3`, `.pos`, `.phon`, `.def` | dictionaryapi.dev; cuối cùng là Web Speech API |
 | Nghĩa tiếng Việt | Google Translate `translate_a/single` (`dt=t`, `dt=bd` cho nghĩa theo từ loại) | – |
 | Hình | Emoji 3D Fluent (`@lobehub/fluent-emoji-3d` qua jsDelivr), tra bằng bảng `src/data/emoji-index.json` | Ảnh Wikipedia, chỉ cho danh từ, bỏ trang disambiguation hoặc trang về phim, địa danh, người…; cuối cùng là ảnh chủ đề của Oxford. Không có thì để ô trống |
 
@@ -33,5 +33,5 @@ File mp3 Oxford phát trực tiếp bằng `<audio>` (không vướng CORS). Tra
 Vite + React + TypeScript, Vitest + Testing Library, tesseract.js. PWA bằng manifest + service worker đơn giản.
 
 ## Giới hạn đã biết
-- Phụ thuộc CORS proxy công cộng: nếu mọi proxy hỏng thì dùng dictionaryapi.dev + giọng máy.
+- Production chạy trên Vercel với một hàm serverless duy nhất (`/api/oxford`, chỉ nhận một từ, không phải proxy mở) vì proxy công cộng corsfix không cho domain chưa đăng ký. Mọi thứ khác vẫn chạy trong trình duyệt.
 - Ảnh ưu tiên thứ gần gũi với trẻ em và đời sống hiện tại: emoji 3D trước, ảnh bách khoa sau (ảnh Wikipedia có thể cũ, ví dụ máy tính thế hệ đầu). Bảng emoji dựng bằng `node scripts/build-emoji-index.mjs`; sửa tay ở `scripts/emoji-overrides.json`.

@@ -96,7 +96,7 @@ export interface LookupDeps {
 
 export const defaultDeps: LookupDeps = {
   fetchOxford: async (w) => {
-    const html = await fetchViaProxy(OXFORD_SEARCH + encodeURIComponent(w), { check: oxfordBodyCheck })
+    const html = await fetchOxfordHtml(w)
     const entry = parseOxfordHtml(html)
     return { entry, suggestions: entry ? [] : parseOxfordSuggestions(html) }
   },
@@ -106,6 +106,22 @@ export const defaultDeps: LookupDeps = {
   },
   translate: translateToVi,
   findImage,
+}
+
+/** Bản production (Vercel) có hàm /api/oxford riêng; lỗi hoặc chạy nơi khác thì dùng proxy công cộng. */
+async function fetchOxfordHtml(word: string): Promise<string> {
+  if (import.meta.env.PROD) {
+    try {
+      const r = await fetchWithTimeout(`/api/oxford?q=${encodeURIComponent(word)}`, 10000)
+      if (r.ok) {
+        const html = await r.text()
+        if (oxfordBodyCheck(html, true) === 'done') return html
+      }
+    } catch {
+      /* dùng proxy công cộng */
+    }
+  }
+  return fetchViaProxy(OXFORD_SEARCH + encodeURIComponent(word), { check: oxfordBodyCheck })
 }
 
 const safe = async <T>(p: Promise<T>): Promise<T | null> => {
