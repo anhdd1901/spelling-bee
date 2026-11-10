@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#ffd84d"/>
+  <circle cx="256" cy="268" r="170" fill="#fff6d6"/>
+  <text x="256" y="330" font-family="Arial Rounded MT Bold, Arial, sans-serif" font-weight="900" font-size="190" text-anchor="middle" fill="#ff7a45">ABC</text>
+  <circle cx="400" cy="120" r="44" fill="#4cb5f5"/>
+  <path d="M385 100 v36 a12 12 0 1 0 8 -10 v-18 l16 -6 v-8z" fill="#fff"/>
+</svg>
