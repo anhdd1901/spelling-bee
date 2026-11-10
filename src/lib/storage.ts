@@ -44,6 +44,12 @@ export function addWords(list: WordItem[], texts: string[]): { list: WordItem[];
 
 export const removeWord = (list: WordItem[], id: string) => list.filter((w) => w.id !== id)
 
+/** Xóa nhiều từ một lúc (chế độ "Xóa nhiều"). */
+export function removeWords(list: WordItem[], ids: Iterable<string>): WordItem[] {
+  const drop = new Set(ids)
+  return list.filter((w) => !drop.has(w.id))
+}
+
 /** Chuyển từ `fromId` tới vị trí của từ `toId` (dùng cho kéo-thả). */
 export function moveWord(list: WordItem[], fromId: string, toId: string): WordItem[] {
   const from = list.findIndex((w) => w.id === fromId)

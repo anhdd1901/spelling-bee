@@ -34,7 +34,7 @@ describe('App', () => {
     play.mockClear()
   })
 
-  it('adds several typed words, deletes one, and has no edit button', async () => {
+  it('adds several typed words, deletes one without asking, and has no edit button', async () => {
     const u = userEvent.setup()
     render(<App />)
     await u.type(screen.getByLabelText('Từ tiếng Anh'), 'cat, dog bird{Enter}')
@@ -43,7 +43,6 @@ describe('App', () => {
     expect(screen.queryByRole('button', { name: /Sửa từ/ })).not.toBeInTheDocument()
 
     await u.click(screen.getByRole('button', { name: 'Xóa từ bird' }))
-    await u.click(screen.getByRole('button', { name: 'Xóa' }))
     expect(within(list).getAllByRole('listitem')).toHaveLength(2)
 
     // vẫn thêm được từ mới sau đó, và từ trùng bị bỏ qua
@@ -53,6 +52,55 @@ describe('App', () => {
       'cat',
       'dog',
       'fish',
+    ])
+  })
+
+  it('deletes several selected words with the bulk delete mode', async () => {
+    const u = userEvent.setup()
+    render(<App />)
+    expect(screen.queryByRole('button', { name: 'Xóa nhiều' })).not.toBeInTheDocument()
+    await u.type(screen.getByLabelText('Từ tiếng Anh'), 'cat dog bird fish{Enter}')
+    await u.click(screen.getByRole('button', { name: 'Xóa nhiều' }))
+
+    // trong chế độ chọn: không còn nút xóa từng từ, chạm thẻ là chọn chứ không phát âm
+    expect(screen.queryByRole('button', { name: /^Xóa từ/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Xóa (0)' })).toBeDisabled()
+    await u.click(screen.getByRole('button', { name: 'Chọn từ cat' }))
+    await u.click(screen.getByRole('button', { name: 'Chọn từ bird' }))
+    await u.click(screen.getByRole('button', { name: 'Chọn từ dog' }))
+    await u.click(screen.getByRole('button', { name: 'Chọn từ dog' })) // bỏ chọn
+    expect(screen.getByRole('button', { name: 'Chọn từ cat' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Chọn từ dog' })).toHaveAttribute('aria-pressed', 'false')
+    expect(play).not.toHaveBeenCalled()
+
+    await u.click(screen.getByRole('button', { name: 'Xóa (2)' }))
+    expect(screen.getByText('🗑️ Đã xóa 2 từ')).toHaveClass('toast')
+    expect(JSON.parse(localStorage.getItem('spelling-kids:words:v1')!).map((w: { text: string }) => w.text)).toEqual([
+      'dog',
+      'fish',
+    ])
+    // tự thoát chế độ chọn
+    expect(screen.getByRole('button', { name: 'Xóa từ dog' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Xóa nhiều' })).toBeInTheDocument()
+  })
+
+  it('select-all picks only the filtered words, and Xong leaves without deleting', async () => {
+    const u = userEvent.setup()
+    render(<App />)
+    await u.type(screen.getByLabelText('Từ tiếng Anh'), 'cat dog cow{Enter}')
+    await u.click(screen.getByRole('button', { name: 'Xóa nhiều' }))
+    await u.click(screen.getByRole('button', { name: 'Chọn hết' }))
+    expect(screen.getByRole('button', { name: 'Xóa (3)' })).toBeEnabled()
+    await u.click(screen.getByRole('button', { name: 'Xong' }))
+    expect(screen.getAllByRole('button', { name: /^Xóa từ/ })).toHaveLength(3)
+
+    await u.type(screen.getByRole('searchbox'), 'c')
+    await u.click(screen.getByRole('button', { name: 'Xóa nhiều' }))
+    expect(screen.getByRole('button', { name: 'Xóa (0)' })).toBeDisabled() // thoát là bỏ chọn
+    await u.click(screen.getByRole('button', { name: 'Chọn hết' }))
+    await u.click(screen.getByRole('button', { name: 'Xóa (2)' }))
+    expect(JSON.parse(localStorage.getItem('spelling-kids:words:v1')!).map((w: { text: string }) => w.text)).toEqual([
+      'dog',
     ])
   })
 

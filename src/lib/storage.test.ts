@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { addWords, correctWord, loadWords, moveWord, removeWord, saveWords } from './storage'
+import { addWords, correctWord, loadWords, moveWord, removeWord, removeWords, saveWords } from './storage'
 
 describe('word list', () => {
   beforeEach(() => localStorage.clear())
@@ -13,6 +13,11 @@ describe('word list', () => {
     const { list } = addWords([], ['cat', 'dog'])
     saveWords(removeWord(list, list[0].id))
     expect(loadWords().map((w) => w.text)).toEqual(['dog'])
+  })
+  it('removes several words at once', () => {
+    const { list } = addWords([], ['a', 'b', 'c', 'd'])
+    expect(removeWords(list, [list[1].id, list[3].id, 'missing']).map((w) => w.text)).toEqual(['a', 'c'])
+    expect(removeWords(list, []).map((w) => w.text)).toEqual(['a', 'b', 'c', 'd'])
   })
   it('moves a word to another position (drag and drop)', () => {
     const { list } = addWords([], ['a', 'b', 'c', 'd'])

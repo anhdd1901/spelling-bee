@@ -16,7 +16,7 @@ import { WordInput } from './components/WordInput'
 import { playPronunciation, unlockAudio, type PlayResult } from './lib/audio'
 import { getCached, lookupCached, type WordInfo } from './lib/lookup'
 import { POS_COLORS } from './lib/pos'
-import { addWords, correctWord, loadWords, moveWord, removeWord, saveWords, type WordItem } from './lib/storage'
+import { addWords, correctWord, loadWords, moveWord, removeWord, removeWords, saveWords, type WordItem } from './lib/storage'
 
 /** Nghỉ giữa hai lần tra nền: proxy Oxford chỉ cho khoảng 60 lượt mỗi phút. */
 const PREFETCH_GAP_MS = 1100
@@ -34,6 +34,8 @@ export default function App() {
   const [sound, setSound] = useState<PlayResult | null>(null)
   const [photo, setPhoto] = useState<File | null>(null)
   const [query, setQuery] = useState('')
+  /** null = không ở chế độ "Xóa nhiều"; Set = các id đang được chọn. */
+  const [picked, setPicked] = useState<Set<string> | null>(null)
   const [toast, setToast] = useState('')
   const toastTimer = useRef<number | undefined>(undefined)
   const openRef = useRef<string | null>(null)
@@ -160,6 +162,23 @@ export default function App() {
     if (w) say(`🗑️ Đã xóa "${w.text}"`)
   }
 
+  const togglePick = (id: string) =>
+    setPicked((p) => {
+      const n = new Set(p)
+      if (n.has(id)) n.delete(id)
+      else n.add(id)
+      return n
+    })
+
+  const delPicked = () => {
+    if (!picked?.size) return
+    const gone = words.filter((w) => picked.has(w.id))
+    setWords(removeWords(words, picked))
+    if (gone.some((w) => w.text === openWord)) closeDetail()
+    setPicked(null)
+    say(gone.length === 1 ? `🗑️ Đã xóa "${gone[0].text}"` : `🗑️ Đã xóa ${gone.length} từ`)
+  }
+
   const existing = useMemo(() => new Set(words.map((w) => w.text.toLowerCase())), [words])
   const q = query.trim().toLowerCase()
   const shown = q ? words.filter((w) => w.text.toLowerCase().includes(q)) : words
@@ -206,7 +225,7 @@ export default function App() {
       </div>
 
       <section className="panel words-panel" aria-label="Danh sách từ">
-        <div className="words-head">
+        <div className={`words-head ${picked ? 'picking' : ''}`}>
           <h2>
             Từ của bé <span className="count">{words.length}</span>
           </h2>
@@ -223,6 +242,25 @@ export default function App() {
               spellCheck={false}
             />
           </label>
+          {picked ? (
+            <div className="bulk-bar">
+              <button type="button" className="btn btn-ghost small" onClick={() => setPicked(new Set(shown.map((w) => w.id)))}>
+                Chọn hết
+              </button>
+              <button type="button" className="btn btn-danger small" disabled={picked.size === 0} onClick={delPicked}>
+                Xóa ({picked.size})
+              </button>
+              <button type="button" className="btn btn-ghost small" onClick={() => setPicked(null)}>
+                Xong
+              </button>
+            </div>
+          ) : (
+            words.length > 0 && (
+              <button type="button" className="btn btn-ghost small bulk-btn" onClick={() => setPicked(new Set())}>
+                Xóa nhiều
+              </button>
+            )
+          )}
         </div>
         <ul className="legend" aria-label="Màu theo từ loại">
           {LEGEND.map((c) => (
@@ -256,8 +294,11 @@ export default function App() {
                       info={infos[w.text.toLowerCase()] ?? null}
                       active={openWord === w.text}
                       dragDisabled={!!q}
+                      selecting={!!picked}
+                      selected={!!picked?.has(w.id)}
                       onOpen={open}
                       onDelete={del}
+                      onToggle={togglePick}
                     />
                   ))}
                 </ul>
