@@ -5,7 +5,8 @@ export type Feedback = 'right' | 'wrong' | null
 export const RIGHT_MS = 350
 export const WRONG_MS = 400
 
-/** right(): phát ding, feedback='right', sau RIGHT_MS gọi onCorrect.
+/** Dùng một lần cho mỗi từ: cha remount bằng `key` mới cho từ kế tiếp.
+ *  right(): phát ding, feedback='right', sau RIGHT_MS gọi onCorrect.
  *  wrong(): phát buzz, feedback='wrong', sau WRONG_MS về null.
  *  Đang 'right' thì right()/wrong() không làm gì. Unmount thì hủy timer. */
 export function useFeedback(onCorrect: () => void) {
@@ -16,6 +17,12 @@ export function useFeedback(onCorrect: () => void) {
   useEffect(() => {
     cb.current = onCorrect
   })
+
+  /** Khóa: sau khi thẻ đã trượt đi (bỏ qua) thì right()/wrong() không còn tác dụng. */
+  const lock = useCallback(() => {
+    clearTimeout(timer.current)
+    state.current = 'right'
+  }, [])
 
   useEffect(() => () => clearTimeout(timer.current), [])
 
@@ -40,5 +47,5 @@ export function useFeedback(onCorrect: () => void) {
     }, WRONG_MS)
   }, [])
 
-  return { feedback, right, wrong }
+  return { feedback, right, wrong, lock }
 }

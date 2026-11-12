@@ -8,10 +8,12 @@ const TAP_PX = 10
 
 type Drag = { id: number; startX: number; startY: number; moved: boolean; samples: { x: number; t: number }[] }
 
+/** Dùng một lần cho mỗi từ: cha remount bằng `key` mới cho từ kế tiếp. */
 export function SwipeCard({
   feedback,
   hasNext,
   onSkip,
+  onLeave,
   onTap,
   className,
   style,
@@ -20,6 +22,8 @@ export function SwipeCard({
   feedback: Feedback
   hasNext: boolean
   onSkip(): void
+  /** Gọi ngay khi thẻ bắt đầu trượt đi (bỏ qua); cha nối với `lock` của useFeedback. */
+  onLeave?(): void
   onTap?(): void
   className?: string
   style?: CSSProperties
@@ -28,6 +32,7 @@ export function SwipeCard({
   const [dx, setDx] = useState(0)
   const [dragging, setDragging] = useState(false)
   const [leaving, setLeaving] = useState(false)
+  const [leaveDx, setLeaveDx] = useState(0)
   const drag = useRef<Drag | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const skipRef = useRef(onSkip)
@@ -76,7 +81,8 @@ export function SwipeCard({
     const width = e.currentTarget.offsetWidth || e.currentTarget.getBoundingClientRect().width
     if (swipeDecision(delta, width, velocity) === 'skip') {
       setLeaving(true)
-      setDx(0)
+      setLeaveDx(delta)
+      onLeave?.()
       timer.current = setTimeout(() => skipRef.current(), LEAVE_MS)
     } else {
       setDx(0)
@@ -93,8 +99,8 @@ export function SwipeCard({
   const cls = [
     'practice-card',
     className,
-    feedback === 'right' && 'right',
-    feedback === 'wrong' && 'wrong',
+    feedback === 'right' && !leaving && 'right',
+    feedback === 'wrong' && !leaving && 'wrong',
     leaving && 'leaving',
     dragging && 'dragging',
   ]
@@ -106,7 +112,14 @@ export function SwipeCard({
       {hasNext && <div className="next-peek" aria-hidden="true" />}
       <div
         className={cls}
-        style={{ ...style, ...(dx !== 0 ? { transform: `translateX(${dx}px)` } : null) }}
+        style={{
+          ...style,
+          ...(leaving
+            ? ({ '--dx': `${leaveDx}px` } as CSSProperties)
+            : dx !== 0
+              ? { transform: `translateX(${dx}px)` }
+              : null),
+        }}
         onPointerDown={down}
         onPointerMove={move}
         onPointerUp={up}

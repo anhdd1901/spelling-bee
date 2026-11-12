@@ -117,6 +117,35 @@ describe('SwipeCard', () => {
       expect(onSkip).toHaveBeenCalledTimes(1)
     })
 
+    it('trượt đi từ chỗ thả tay (--dx) và chỉ một kết quả: onSkip một lần, onCorrect không bao giờ', () => {
+      const onSkip = vi.fn()
+      const onCorrect = vi.fn()
+      let api!: ReturnType<typeof useFeedback>
+      function Harness() {
+        api = useFeedback(onCorrect)
+        return (
+          <SwipeCard feedback={api.feedback} hasNext onSkip={onSkip} onLeave={api.lock}>
+            x
+          </SwipeCard>
+        )
+      }
+      vi.useFakeTimers()
+      const { container } = render(<Harness />)
+      const card = container.querySelector('.practice-card') as HTMLElement
+      Object.defineProperty(card, 'offsetWidth', { value: 300, configurable: true })
+      card.setPointerCapture = vi.fn()
+      fireEvent.pointerDown(card, { clientX: 250, clientY: 0, pointerId: 1 })
+      fireEvent.pointerMove(card, { clientX: 100, clientY: 0, pointerId: 1 })
+      fireEvent.pointerUp(card, { clientX: 100, clientY: 0, pointerId: 1 })
+      expect(card).toHaveClass('leaving')
+      expect(card.style.getPropertyValue('--dx')).toBe('-150px')
+      act(() => { api.right() })
+      expect(card).not.toHaveClass('right')
+      act(() => { vi.advanceTimersByTime(5000) })
+      expect(onSkip).toHaveBeenCalledTimes(1)
+      expect(onCorrect).not.toHaveBeenCalled()
+    })
+
     it('kéo ngắn thì quay về, không skip', () => {
       const { card, onSkip } = setup()
       fireEvent.pointerDown(card, { clientX: 250, clientY: 0, pointerId: 1 })
