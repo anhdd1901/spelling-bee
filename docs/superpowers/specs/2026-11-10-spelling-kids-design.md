@@ -40,8 +40,10 @@ Web app chỉ có frontend (không backend) cho trẻ 5–10 tuổi: nhập từ
 - Nhận dạng bằng Web Speech API (`SpeechRecognition`/`webkitSpeechRecognition`), `lang = 'en-US'`, `maxAlternatives = 5`, không lấy kết quả tạm.
 - **So khớp** (`matchesWord`, hàm thuần): chuẩn hóa cả hai phía (chữ thường, bỏ dấu câu, coi `-` và `'` như không có). Đúng khi một phương án bất kỳ có một từ trùng với từ cần đọc, hoặc cả phương án ghép liền (bỏ khoảng trắng) trùng với từ cần đọc (`ice cream` khớp `ice-cream`).
 - **Từ đồng âm**: `speech.ts` có bảng vài chục cặp đồng âm thường gặp (bee/be, two/too/to, eye/I, knight/night…). Phương án trùng với từ đồng âm của từ cần đọc cũng tính đúng, vì máy nhận dạng không phân biệt được.
+- **Số đếm**: máy thường trả chữ số ("2" khi bé đọc "two"); chữ số trùng với số đếm cần đọc cũng tính đúng.
 - Bị chấm sai thì hiện dòng nhỏ màu nhạt dưới thẻ "Máy nghe là: be" (phương án đầu tiên), mất đi khi bé nói lần sau.
 - Không nghe thấy gì (`no-speech`, kết quả rỗng): không tính sai, không phát "è", hiện "Chưa nghe thấy, bé bấm 🎤 nói lại nhé".
+- Nhận dạng lỗi vì mạng hoặc micro: không tính sai, không phát "è", hiện "Máy chưa nghe được, bé thử lại nhé".
 - Trình duyệt không hỗ trợ nhận dạng (ví dụ Firefox): màn luyện nói hiện "Máy này chưa nghe được bé nói — hãy mở bằng Chrome hoặc Safari", vẫn nghe mẫu và bỏ qua được. Bé không cho phép dùng micro: hiện "Bé cần cho phép dùng micro".
 - Giới hạn: chỉ kiểm tra được "máy nghe ra đúng từ đó không", không chấm độ chuẩn từng âm. Chrome gửi tiếng lên máy chủ của Google để nhận dạng, nên cần mạng.
 
