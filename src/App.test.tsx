@@ -15,7 +15,8 @@ const catInfo = (word: string) => ({
     source: 'oxford',
   })
 const lookup = vi.fn(async (word: string) => catInfo(word))
-vi.mock('./lib/lookup', () => ({
+vi.mock('./lib/lookup', async (importActual) => ({
+  usAudioUrls: (await importActual<typeof import('./lib/lookup')>()).usAudioUrls,
   getCached: () => null,
   lookupCached: (w: string) => lookup(w),
 }))

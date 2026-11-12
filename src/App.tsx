@@ -14,7 +14,7 @@ import { WordCard } from './components/WordCard'
 import { WordDetail } from './components/WordDetail'
 import { WordInput } from './components/WordInput'
 import { playPronunciation, unlockAudio, type PlayResult } from './lib/audio'
-import { getCached, lookupCached, type WordInfo } from './lib/lookup'
+import { getCached, lookupCached, usAudioUrls, type WordInfo } from './lib/lookup'
 import { POS_COLORS } from './lib/pos'
 import { addWords, correctWord, loadWords, moveWord, removeWord, removeWords, saveWords, type WordItem } from './lib/storage'
 
@@ -102,7 +102,7 @@ export default function App() {
 
   const speak = (info: WordInfo, accent: 'us' | 'uk' = 'us') => {
     // Có tiếng đúng của từ đã nhập (số nhiều…) thì phát trước, hỏng thì phát tiếng Oxford.
-    const urls = accent === 'uk' ? [info.audioExact, info.audioUK] : [info.audioExact, info.audioUS ?? info.audioUK]
+    const urls = accent === 'uk' ? [info.audioExact, info.audioUK] : usAudioUrls(info)
     setSound(null)
     return playPronunciation(urls, info.word).then((r) => {
       if (openRef.current?.toLowerCase() === info.word.toLowerCase()) setSound(r)

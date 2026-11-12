@@ -329,7 +329,7 @@ Quyết định:
 - `PracticeResults`: hàng sao (`aria-label="{n} trên 3 sao"`), số `{percent}%`, dòng `Bé làm đúng {correct} trên {total} từ`, `Honeycomb` cả lượt. Có từ bỏ qua: tiêu đề `Luyện lại nhé:` và mỗi từ một nút (`aria-label="Luyện lại {word}"`, từ đã làm lại đúng có `✅` và `aria-label="{word}, đã làm đúng"`, vẫn bấm được). Không có từ bỏ qua: `Bé làm đúng hết rồi! 🐝`. Hai nút `Luyện lượt mới`, `Về danh sách`.
 - CSS: cột canh giữa `max-width: 520px`; số % màu `--orange` có `text-shadow` như `.hero h1`; `@media (max-height: 520px)` thu thấp thẻ để nút Xong ✓ còn trong màn hình khi bàn phím bật.
 
-- [ ] **Step 1: Viết test (fail)** trong `PracticeScreen.test.tsx`. Mock `../lib/lookup` (`getCached: () => null`, `lookupCached`, `usAudioUrls` thật qua `importActual`), `../lib/audio` (`play` trả `'audio'` mặc định), `../lib/sfx`. Dùng `random={() => 0}` và danh sách ngắn; đọc thứ tự từ qua số lần `play` được gọi với tham số thứ hai. Dùng `vi.useFakeTimers({ shouldAdvanceTime: true })` hoặc `findBy…` để qua `RIGHT_MS`.
+- [x] **Step 1: Viết test (fail)** trong `PracticeScreen.test.tsx`. Mock `../lib/lookup` (`getCached: () => null`, `lookupCached`, `usAudioUrls` thật qua `importActual`), `../lib/audio` (`play` trả `'audio'` mặc định), `../lib/sfx`. Dùng `random={() => 0}` và danh sách ngắn; đọc thứ tự từ qua số lần `play` được gọi với tham số thứ hai. Dùng `vi.useFakeTimers({ shouldAdvanceTime: true })` hoặc `findBy…` để qua `RIGHT_MS`.
 
 ```ts
 it('tự đọc mẫu khi thẻ hiện, không hiện chữ của từ', …)                 // play gọi 1 lần với word; queryByText(word) null
@@ -351,10 +351,10 @@ it('từ có đồng âm ("two", meaningVi "hai") luôn hiện nghĩa; từ thư
 it('ô gõ tắt tự sửa: autocorrect="off", autocapitalize="off", spellcheck="false"', …)
 ```
 
-- [ ] **Step 2:** `npx vitest run src/components/PracticeScreen.test.tsx` → FAIL.
-- [ ] **Step 3:** Viết `usAudioUrls` (và dùng nó trong `App.speak` cho giọng Mỹ), `WriteCard`, `PracticeResults`, `PracticeScreen`, CSS.
-- [ ] **Step 4:** `npx vitest run` (toàn bộ, vì có sửa `App.tsx`) → PASS; lint + build sạch.
-- [ ] **Step 5:** Commit `feat(plan-1/task-4): practice screen, results and writing practice`.
+- [x] **Step 2:** `npx vitest run src/components/PracticeScreen.test.tsx` → FAIL.
+- [x] **Step 3:** Viết `usAudioUrls` (và dùng nó trong `App.speak` cho giọng Mỹ), `WriteCard`, `PracticeResults`, `PracticeScreen`, CSS.
+- [x] **Step 4:** `npx vitest run` (toàn bộ, vì có sửa `App.tsx`) → PASS; lint + build sạch.
+- [x] **Step 5:** Commit `feat(plan-1/task-4): practice screen, results and writing practice`.
 
 ---
 

@@ -33,6 +33,11 @@ export interface WordInfo {
   source: 'oxford' | 'backup' | 'none'
 }
 
+/** Thứ tự file tiếng giọng Mỹ: tiếng đúng của từ đã nhập, rồi Oxford. */
+export function usAudioUrls(info: WordInfo): (string | undefined)[] {
+  return [info.audioExact, info.audioUS ?? info.audioUK]
+}
+
 /** Dự phòng: dictionaryapi.dev (có CORS). */
 export function parseFreeDictionary(json: unknown, word: string): OxfordEntry | null {
   const entries = json as {
