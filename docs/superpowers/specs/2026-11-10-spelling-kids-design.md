@@ -17,8 +17,8 @@ Web app chỉ có frontend (không backend) cho trẻ 5–10 tuổi: nhập từ
 ## Luyện tập (luyện nói, luyện viết)
 
 ### Vào và ra
-- Màn chính có 2 nút gọn **🎤 Luyện nói** và **✏️ Luyện viết** cạnh tiêu đề app (giữ `.top` gọn). Danh sách rỗng thì hai nút bị khóa.
-- App đổi màn bằng trạng thái `view: 'home' | 'speak' | 'write'`, không dùng router. Màn luyện chiếm cả màn hình: nút **←** quay về danh sách (không hỏi lại, lượt đang dở bị bỏ), thanh tiến độ (`3/18`), một thẻ to ở giữa.
+- Màn chính có 2 nút gọn **🎤 Luyện nói** và **✏️ Luyện viết** bên phải tiêu đề app. Màn hẹp: hai nút thay chỗ dòng tagline để `.top` không cao thêm. Danh sách rỗng thì hai nút bị khóa.
+- App đổi màn bằng trạng thái `view: 'home' | 'speak' | 'write'`, không dùng router. Màn luyện chiếm cả màn hình: nút **←** quay về danh sách (không hỏi lại, lượt đang dở bị bỏ), thanh tiến độ tổ ong, một thẻ to ở giữa (xem *Giao diện màn luyện*).
 - Từ dùng để luyện là các từ trong "Từ của bé".
 
 ### Chọn từ cho một lượt
@@ -61,6 +61,16 @@ Web app chỉ có frontend (không backend) cho trẻ 5–10 tuổi: nhập từ
 - Bên dưới là các từ bị bỏ qua. Nhấn một từ thì mở lại thẻ của từ đó (cùng chế độ, có thể làm sai nhiều lần hoặc gạt đi để thôi). Làm đúng thì quay về màn kết quả và từ đó được đánh ✅. **Điểm không đổi.** Làm đúng ở đây cũng đưa số lần bỏ qua của từ về 0.
 - Hai nút: **Luyện lượt mới** (chọn lại từ) và **Về danh sách**.
 - Lượt đang làm dở không được lưu: tải lại trang hoặc rời app thì làm lại từ đầu (số lần bỏ qua của các từ đã làm vẫn còn vì ghi ngay).
+
+### Giao diện màn luyện
+- Dùng lại hệ thống sẵn có (Baloo 2, nền vàng kem chấm bi, viền `--shadow` 4px, bóng đổ đồ chơi, các biến màu). Không thêm font hay màu nền mới.
+- Bố cục: một cột canh giữa, rộng tối đa 520px. Hàng trên: nút ← · tổ ong tiến độ · tên chế độ. Giữa: chồng thẻ. Dưới: nút chính (🎤 hoặc Xong ✓), rồi nút chữ nhỏ màu nhạt "Bỏ qua ⏭".
+- **Tổ ong tiến độ** (điểm nhấn duy nhất): một hàng ô lục giác, mỗi từ một ô. Đúng: đầy mật `--sun`. Bỏ qua: rỗng, viền nhạt. Đang làm: viền đậm, nảy nhẹ. Có nhãn "3/18" cho trình đọc màn hình. Màn kết quả hiện lại tổ ong của cả lượt.
+- **Chồng thẻ**: sau thẻ hiện tại ló ra mép thẻ kế tiếp (lệch, nghiêng nhẹ). Đúng: viền thẻ đổi `--green`, trượt trái 0,35s, thẻ sau tiến lên. Sai: viền đổi `--pink`, lắc ngang 3 nhịp trong 0,4s.
+- **Thẻ luyện nói**: hình ở trên, chữ ở dưới cỡ `clamp(2.6rem, 12vw, 5rem)` đậm 800, một dòng, tự thu nhỏ bằng `FitText`. Nút 🎤 tròn 96px màu `--pink`; đang nghe có 2 vòng sóng tỏa ra và nhãn "Bé nói đi…". Dòng "Máy nghe là: …" nằm giữa thẻ và nút 🎤.
+- **Thẻ luyện viết**: trắng, kẻ dòng mờ như vở ô li; ô gõ không khung, chữ to nằm trên dòng kẻ đậm ở giữa. Góc trên trái nút 🔊 (`--blue`), góc trên phải nút tẩy (hình SVG vẽ riêng). Nghĩa tiếng Việt (khi có) nằm dưới dòng viết. Nút Xong ✓ màu `--green`. Khi bàn phím điện thoại bật, thẻ thấp lại để nút Xong ✓ vẫn trong màn hình.
+- **Màn kết quả**: hàng sao, số % to màu `--orange` có bóng chữ như tiêu đề app, dòng "Bé làm đúng 15 trên 18 từ", tổ ong, "Luyện lại nhé:" với các thẻ từ nhỏ (làm lại đúng thì có ✅), hai nút. Không bỏ qua từ nào thì thay danh sách bằng "Bé làm đúng hết rồi! 🐝".
+- Chuyển động chỉ để trả lời thao tác của bé (trượt, lắc, đổ mật, vòng sóng); không có gì tự chạy khi mở màn.
 
 ### Cấu trúc code
 - `src/lib/practice.ts` (thuần, có test): `pickRound(words, skipCounts, random)`, reducer trạng thái lượt (`correct` / `wrong` / `skip` / `retry` → `results`), `score()`.
