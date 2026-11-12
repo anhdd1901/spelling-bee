@@ -8,10 +8,60 @@ Web app chỉ có frontend (không backend) cho trẻ 5–10 tuổi: nhập từ
 2. **Nhập từ ảnh**: nút "Chụp ảnh" (camera trên điện thoại, `capture="environment"`) và "Tải ảnh lên". OCR bằng tesseract.js (chạy ngay trong trình duyệt). Các từ đọc được hiện thành chip có thể chọn hoặc bỏ chọn; bấm "Thêm các từ đã chọn".
 3. **Danh sách từ ("Từ của bé")**: mỗi từ là một thẻ, màu nền theo từ loại (danh từ cam, động từ xanh dương, tính từ tím, trạng từ xanh lá, loại khác vàng, chưa tra xong thì xám), có chú thích màu. Thẻ đang chọn đổi màu viền sang màu đậm của từ loại. Chữ luôn một dòng, không ngắt giữa từ, tự thu nhỏ cho vừa. Trong thẻ chỉ có chữ và nút xóa 🗑️ nằm cùng hàng (bấm là xóa luôn, không hỏi lại). Không có chức năng sửa từ. Ô tìm kiếm nằm cùng hàng với tiêu đề "Từ của bé" (màn hẹp thì xuống dòng riêng). Bên phải ô tìm kiếm có nút "Xóa nhiều": vào chế độ chọn, chạm thẻ để chọn/bỏ chọn (không phát âm, không kéo-thả, ẩn nút 🗑️), thanh nút "Chọn hết" (các từ đang hiện theo bộ lọc) · "Xóa (n)" (xóa luôn, không hỏi lại, rồi thoát) · "Xong" (thoát, bỏ chọn). Lúc nào cũng thêm được từ mới, từ trùng tự bỏ qua.
 4. **Khối chi tiết**: không phải popup. Khối này thay chỗ phần tên app và khối thêm từ, có nút ✕ để quay lại. Bố cục ngang: [từ, phiên âm, nút nghe Mỹ/Anh] · [tag từ loại, nghĩa chính chữ to, các nghĩa phụ chữ nhỏ bên dưới] · [ảnh ở cuối bên phải]. Trên màn hình hẹp, chữ xếp thành một cột bên trái, ảnh vẫn nằm bên phải. Không có dòng nguồn phát âm, không có khối giải thích.
-5. **Lưu** danh sách từ trong `localStorage`; kết quả tra cứu được cache trong `localStorage`.
+5. **Lưu** danh sách từ trong `localStorage`; kết quả tra cứu được cache trong `localStorage`; số lần bỏ qua khi luyện tập cũng lưu trong `localStorage`.
 6. **Kéo-thả** để đổi vị trí từ: chuột rê quá 6px, cảm ứng nhấn giữ 0,2 giây. Tắt khi đang tìm kiếm.
 7. **Khi không nghe được**: lần tra lỗi không bị giữ lại, bấm vào từ là tra lại. Không có tiếng (máy không có giọng đọc) thì hiện "🔇 Chưa có tiếng đọc". Từ sai chính tả thì hiện gợi ý của Oxford ("Có phải bé muốn viết: dishwasher"), chạm để sửa từ và nghe luôn. Oxford đổi sang từ gốc (beans → bean) thì phát tiếng đúng của từ đã nhập nếu có, không có thì phát tiếng từ gốc, và ghi "từ gốc: bean".
 8. **Cuộn**: cả trang không cuộn, chỉ vùng danh sách từ cuộn.
+9. **Luyện nói** và 10. **Luyện viết**: xem mục *Luyện tập* bên dưới.
+
+## Luyện tập (luyện nói, luyện viết)
+
+### Vào và ra
+- Màn chính có 2 nút gọn **🎤 Luyện nói** và **✏️ Luyện viết** cạnh tiêu đề app (giữ `.top` gọn). Danh sách rỗng thì hai nút bị khóa.
+- App đổi màn bằng trạng thái `view: 'home' | 'speak' | 'write'`, không dùng router. Màn luyện chiếm cả màn hình: nút **←** quay về danh sách (không hỏi lại, lượt đang dở bị bỏ), thanh tiến độ (`3/18`), một thẻ to ở giữa.
+- Từ dùng để luyện là các từ trong "Từ của bé".
+
+### Chọn từ cho một lượt
+- Danh sách có từ 15 từ trở lên: số từ của lượt là một số ngẫu nhiên trong 15–20, không vượt quá số từ đang có. Ít hơn 15 từ: lấy hết.
+- Ưu tiên từ hay bị bỏ qua: sắp xếp theo số lần bỏ qua giảm dần (bằng nhau thì ngẫu nhiên), lấy đủ số từ, rồi trộn ngẫu nhiên thứ tự hiện.
+- Số lần bỏ qua lưu trong `localStorage`, **riêng cho từng chế độ** (nói/viết), theo chữ của từ (không phân biệt hoa thường). Bỏ qua: +1. Làm đúng: về 0. Ghi ngay khi từ có kết quả. Xóa từ khỏi danh sách thì xóa luôn số liệu của từ đó.
+
+### Thẻ và phản hồi chung
+- **Đúng**: tiếng "tinh", thẻ trượt sang trái, thẻ kế tiếp hiện ra.
+- **Sai**: tiếng "è", thẻ lắc nhẹ, bé làm lại cùng từ đó (không giới hạn số lần).
+- **Bỏ qua**: bé kéo thẻ sang trái. Thả khi đã kéo quá 1/3 chiều rộng thẻ (hoặc hất nhanh sang trái) thì thẻ trượt đi, sang từ kế tiếp. Chưa quá ngưỡng thì thẻ bật về chỗ cũ. Chỉ kéo được sang trái. Di chuyển dưới 10px tính là chạm, không phải kéo. Viết bằng pointer events, không dùng @dnd-kit.
+- Tiếng "tinh" và "è" tạo bằng Web Audio API (không cần file âm thanh).
+- Có `prefers-reduced-motion`: thay trượt/lắc bằng hiện mờ dần, vẫn phát tiếng.
+- Nghe mẫu dùng lại `lookup` (có cache) + `playPronunciation` (Oxford → dictionaryapi.dev → giọng của trình duyệt). Không phát được thì hiện "🔇 Chưa có tiếng đọc".
+
+### Luyện nói
+- Thẻ hiện chữ của từ, màu nền theo từ loại như thẻ ở màn chính. **Chạm vào thẻ** thì nghe mẫu.
+- Dưới thẻ có nút **🎤** to. Bé bấm, nói, nhận dạng tự dừng khi bé im rồi chấm. Đang nghe thì nút đổi trạng thái (nhấp nháy). Đang phát mẫu thì không nghe.
+- Nhận dạng bằng Web Speech API (`SpeechRecognition`/`webkitSpeechRecognition`), `lang = 'en-US'`, `maxAlternatives = 5`, không lấy kết quả tạm.
+- **So khớp** (`matchesWord`, hàm thuần): chuẩn hóa cả hai phía (chữ thường, bỏ dấu câu, coi `-` và `'` như không có). Đúng khi một phương án bất kỳ có một từ trùng với từ cần đọc, hoặc cả phương án ghép liền (bỏ khoảng trắng) trùng với từ cần đọc (`ice cream` khớp `ice-cream`).
+- Không nghe thấy gì (`no-speech`, kết quả rỗng): không tính sai, không phát "è", hiện "Chưa nghe thấy, bé bấm 🎤 nói lại nhé".
+- Trình duyệt không hỗ trợ nhận dạng (ví dụ Firefox): màn luyện nói hiện "Máy này chưa nghe được bé nói — hãy mở bằng Chrome hoặc Safari", vẫn nghe mẫu và bỏ qua được. Bé không cho phép dùng micro: hiện "Bé cần cho phép dùng micro".
+- Giới hạn: chỉ kiểm tra được "máy nghe ra đúng từ đó không", không chấm độ chuẩn từng âm. Chrome gửi tiếng lên máy chủ của Google để nhận dạng, nên cần mạng.
+
+### Luyện viết
+- Thẻ trắng, không hiện từ. Góc trên có nút **🔊** (nghe lại) và nút **tẩy** (xóa hết chữ đã gõ).
+- Giữa thẻ là ô gõ chữ to (nút Xong ✓ ngay dưới ô), tắt tự sửa và gợi ý của bàn phím: `autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck={false}`. Bé bấm Enter hoặc nút **Xong ✓** để kiểm tra. Ô trống thì không kiểm tra.
+- Thẻ hiện lên thì app tự đọc mẫu một lần. Âm thanh được "mở khóa" (`unlockAudio`) trong thao tác bấm vào màn luyện và mỗi lần bấm kiểm tra, để iPhone cho phát.
+- So khớp: bỏ khoảng trắng hai đầu, không phân biệt hoa thường, phải trùng hoàn toàn (kể cả `-` và `'`).
+- Sai: tiếng "è", thẻ lắc, ô gõ bị xóa trắng và giữ con trỏ trong ô.
+
+### Kết quả
+- Hết thẻ cuối (đúng hoặc bỏ qua) thì sang màn kết quả: điểm **% = số từ làm đúng / số từ của lượt**, làm tròn. Làm sai rồi làm lại đúng vẫn tính là đúng; chỉ từ bị bỏ qua là sai.
+- Bên dưới là các từ bị bỏ qua. Nhấn một từ thì mở lại thẻ của từ đó (cùng chế độ, có thể làm sai nhiều lần hoặc gạt đi để thôi). Làm đúng thì quay về màn kết quả và từ đó được đánh ✅. **Điểm không đổi.** Làm đúng ở đây cũng đưa số lần bỏ qua của từ về 0.
+- Hai nút: **Luyện lượt mới** (chọn lại từ) và **Về danh sách**.
+
+### Cấu trúc code
+- `src/lib/practice.ts` (thuần, có test): `pickRound(words, skipCounts, random)`, reducer trạng thái lượt (`correct` / `wrong` / `skip` / `retry` → `results`), `score()`.
+- `src/lib/speech.ts`: bọc `SpeechRecognition` (hỗ trợ không, nghe một lần → phương án hoặc lỗi), `matchesWord` (có test).
+- `src/lib/sfx.ts`: tiếng tinh / è bằng Web Audio.
+- `src/lib/storage.ts`: thêm đọc/ghi số lần bỏ qua theo chế độ; xóa từ thì dọn số liệu.
+- `src/components/PracticeScreen.tsx` (khung chung: tiến độ, vuốt thẻ, kết quả), `SpeakCard.tsx`, `WriteCard.tsx`.
+- Test: logic thuần bằng dữ liệu giả, màn luyện bằng Testing Library với `SpeechRecognition` giả lập. Micro và iPhone thử trên máy thật.
 
 ## Nguồn dữ liệu (đều gọi từ trình duyệt)
 | Dữ liệu | Nguồn chính | Dự phòng |
