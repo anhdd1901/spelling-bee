@@ -248,7 +248,7 @@ Quyết định:
 - `SwipeCard`: pointer events + `setPointerCapture`; chỉ dịch sang trái (`dx` kẹp ≤ 0); `touch-action: pan-y`. Thả tay: `swipeDecision(dx, chiều rộng thẻ, vận tốc 100ms cuối)`; `'skip'` → thêm class `leaving` (trượt trái 0,35s) rồi gọi `onSkip`; `'back'` → về chỗ cũ có transition. Kéo bắt đầu trên `input`, `button` thì bỏ qua (để gõ và bấm bình thường). Class theo `feedback`: `right` (viền `--green`, trượt trái `RIGHT_MS`), `wrong` (viền `--pink`, lắc 3 nhịp `WRONG_MS`).
 - CSS ô lục giác bằng `clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%)`; ô `correct` nền `--sun`; `skipped` nền trong, viền nhạt; `current` viền đậm và nảy nhẹ. Hàng tổ ong tự xuống dòng khi hẹp.
 
-- [ ] **Step 1: Viết test (fail):**
+- [x] **Step 1: Viết test (fail):**
 
 ```ts
 // sfx.test.ts
@@ -269,10 +269,10 @@ it('useFeedback: unmount trước RIGHT_MS thì không gọi onCorrect', …)
 it('SwipeCard: class theo feedback và hasNext', …)   // 'right' / 'wrong'; có phần tử .next-peek khi hasNext
 ```
 
-- [ ] **Step 2:** `npx vitest run src/lib/sfx.test.ts src/components/practiceParts.test.tsx` → FAIL.
-- [ ] **Step 3:** Viết `sfx.ts`, `Honeycomb.tsx`, `useFeedback.ts`, `SwipeCard.tsx` và CSS (tổ ong, chồng thẻ, trượt, lắc, ghi đè reduced-motion).
-- [ ] **Step 4:** Chạy lại → PASS; lint + build sạch.
-- [ ] **Step 5:** Commit `feat(plan-1/task-3): sfx, honeycomb progress and swipe card`.
+- [x] **Step 2:** `npx vitest run src/lib/sfx.test.ts src/components/practiceParts.test.tsx` → FAIL.
+- [x] **Step 3:** Viết `sfx.ts`, `Honeycomb.tsx`, `useFeedback.ts`, `SwipeCard.tsx` và CSS (tổ ong, chồng thẻ, trượt, lắc, ghi đè reduced-motion).
+- [x] **Step 4:** Chạy lại → PASS; lint + build sạch.
+- [x] **Step 5:** Commit `feat(plan-1/task-3): sfx, honeycomb progress and swipe card`.
 
 ---
 
