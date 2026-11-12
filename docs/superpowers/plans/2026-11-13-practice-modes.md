@@ -166,7 +166,7 @@ Quyết định:
   `be/bee`, `to/too/two`, `for/four`, `ate/eight`, `one/won`, `I/eye`, `see/sea`, `sun/son`, `no/know`, `new/knew`, `night/knight`, `right/write`, `here/hear`, `there/their`, `by/buy/bye`, `hi/high`, `our/hour`, `red/read`, `blue/blew`, `flower/flour`, `meat/meet`, `pair/pear`, `bear/bare`, `hair/hare`, `deer/dear`, `tail/tale`, `sail/sale`, `week/weak`, `wood/would`, `hole/whole`, `road/rode`, `plane/plain`, `nose/knows`, `ant/aunt`, `not/knot`, `peace/piece`, `mail/male`, `wait/weight`, `where/wear`, `which/witch`.
 - `listenOnce`: dùng `window.SpeechRecognition ?? window.webkitSpeechRecognition`; `lang = 'en-US'`, `maxAlternatives = 5`, `interimResults = false`, `continuous = false`. Lấy mọi `transcript` của kết quả đầu tiên. Promise chỉ resolve một lần (ở `onresult`, `onerror` hoặc `onend`). Nếu `lib.dom` của TypeScript 7 chưa có kiểu `SpeechRecognition`, khai báo một interface tối thiểu ngay trong file, không dùng `any`.
 
-- [ ] **Step 1: Viết test (fail):**
+- [x] **Step 1: Viết test (fail):**
 
 ```ts
 it.each([
@@ -196,10 +196,10 @@ it('đặt lang en-US, maxAlternatives 5', …)
 it('speechSupported theo việc có lớp nhận dạng hay không', …)
 ```
 
-- [ ] **Step 2:** `npx vitest run src/lib/speech.test.ts` → FAIL.
-- [ ] **Step 3:** Viết `speech.ts`.
-- [ ] **Step 4:** Chạy lại → PASS; lint + build sạch.
-- [ ] **Step 5:** Commit `feat(plan-1/task-2): speech matching and recognition wrapper`.
+- [x] **Step 2:** `npx vitest run src/lib/speech.test.ts` → FAIL.
+- [x] **Step 3:** Viết `speech.ts`.
+- [x] **Step 4:** Chạy lại → PASS; lint + build sạch.
+- [x] **Step 5:** Commit `feat(plan-1/task-2): speech matching and recognition wrapper`.
 
 ---
 
