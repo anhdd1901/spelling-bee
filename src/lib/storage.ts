@@ -1,3 +1,5 @@
+import type { Mode, SkipCounts } from './practice'
+
 export interface WordItem {
   id: string
   text: string
@@ -18,6 +20,32 @@ export function loadWords(): WordItem[] {
 export function saveWords(words: WordItem[]) {
   try {
     localStorage.setItem(KEY, JSON.stringify(words))
+  } catch {
+    /* bỏ qua */
+  }
+}
+
+const skipsKey = (mode: Mode) => `spelling-kids:skips:${mode}:v1`
+
+/** Số lần bỏ qua từng từ ở một chế độ luyện; dữ liệu hỏng coi như rỗng. */
+export function loadSkipCounts(mode: Mode): SkipCounts {
+  try {
+    const raw = localStorage.getItem(skipsKey(mode))
+    const obj = raw ? JSON.parse(raw) : null
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return {}
+    const out: SkipCounts = {}
+    for (const [k, v] of Object.entries(obj)) {
+      if (typeof v === 'number' && Number.isInteger(v) && v > 0) out[k] = v
+    }
+    return out
+  } catch {
+    return {}
+  }
+}
+
+export function saveSkipCounts(mode: Mode, counts: SkipCounts) {
+  try {
+    localStorage.setItem(skipsKey(mode), JSON.stringify(counts))
   } catch {
     /* bỏ qua */
   }

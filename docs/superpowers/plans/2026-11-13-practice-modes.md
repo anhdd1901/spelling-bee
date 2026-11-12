@@ -73,7 +73,7 @@ Quy tắc (từ spec):
 - `swipeDecision`: `'skip'` khi `dx <= -width / 3` hoặc (`velocity <= -0.5` px/ms và `dx <= -30`); còn lại `'back'`.
 - Khóa lưu: `spelling-kids:skips:<mode>:v1`. `loadSkipCounts` chỉ giữ các cặp có giá trị là số nguyên dương.
 
-- [ ] **Step 1: Viết test (fail)** trong `practice.test.ts`:
+- [x] **Step 1: Viết test (fail)** trong `practice.test.ts`:
 
 ```ts
 const seq = (...v: number[]) => { let i = 0; return () => v[i++ % v.length] }
@@ -129,10 +129,10 @@ it('skip counts: lưu riêng từng chế độ, dữ liệu hỏng coi như r�
 })
 ```
 
-- [ ] **Step 2:** `npx vitest run src/lib/practice.test.ts src/lib/storage.test.ts` → FAIL (chưa có hàm).
-- [ ] **Step 3:** Viết `practice.ts` và hai hàm trong `storage.ts` theo Interfaces và Quy tắc.
-- [ ] **Step 4:** Chạy lại → PASS. `npm run lint && npm run build` sạch.
-- [ ] **Step 5:** Commit `feat(plan-1/task-1): practice round logic and skip counts`.
+- [x] **Step 2:** `npx vitest run src/lib/practice.test.ts src/lib/storage.test.ts` → FAIL (chưa có hàm).
+- [x] **Step 3:** Viết `practice.ts` và hai hàm trong `storage.ts` theo Interfaces và Quy tắc.
+- [x] **Step 4:** Chạy lại → PASS. `npm run lint && npm run build` sạch.
+- [x] **Step 5:** Commit `feat(plan-1/task-1): practice round logic and skip counts`.
 
 ---
 

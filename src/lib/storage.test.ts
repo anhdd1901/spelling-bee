@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { addWords, correctWord, loadWords, moveWord, removeWord, removeWords, saveWords } from './storage'
+import { addWords, correctWord, loadWords, loadSkipCounts, moveWord, removeWord, removeWords, saveSkipCounts, saveWords } from './storage'
 
 describe('word list', () => {
   beforeEach(() => localStorage.clear())
@@ -38,5 +38,16 @@ describe('word list', () => {
   it('survives corrupted storage', () => {
     localStorage.setItem('spelling-kids:words:v1', '{bad')
     expect(loadWords()).toEqual([])
+  })
+  it('skip counts: lưu riêng từng chế độ, dữ liệu hỏng coi như rỗng', () => {
+    saveSkipCounts('speak', { cat: 2 })
+    expect(loadSkipCounts('speak')).toEqual({ cat: 2 })
+    expect(loadSkipCounts('write')).toEqual({})
+    for (const bad of ['not json', '[1,2]', '"x"', 'null']) {
+      localStorage.setItem('spelling-kids:skips:write:v1', bad)
+      expect(loadSkipCounts('write')).toEqual({})
+    }
+    localStorage.setItem('spelling-kids:skips:write:v1', '{"cat":"x","dog":2,"owl":-1,"bee":1.5}')
+    expect(loadSkipCounts('write')).toEqual({ dog: 2 })
   })
 })
