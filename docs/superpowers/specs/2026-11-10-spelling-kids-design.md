@@ -28,17 +28,19 @@ Web app chỉ có frontend (không backend) cho trẻ 5–10 tuổi: nhập từ
 
 ### Thẻ và phản hồi chung
 - **Đúng**: tiếng "tinh", thẻ trượt sang trái, thẻ kế tiếp hiện ra.
-- **Sai**: tiếng "è", thẻ lắc nhẹ, bé làm lại cùng từ đó (không giới hạn số lần).
-- **Bỏ qua**: bé kéo thẻ sang trái. Thả khi đã kéo quá 1/3 chiều rộng thẻ (hoặc hất nhanh sang trái) thì thẻ trượt đi, sang từ kế tiếp. Chưa quá ngưỡng thì thẻ bật về chỗ cũ. Chỉ kéo được sang trái. Di chuyển dưới 10px tính là chạm, không phải kéo. Viết bằng pointer events, không dùng @dnd-kit.
+- **Sai**: tiếng "è", thẻ lắc nhẹ, bé làm lại cùng từ đó (không giới hạn số lần). Sai nhiều lần cũng không có gợi ý thêm: bé đã có nút nghe lại và bỏ qua.
+- **Bỏ qua**: bé kéo thẻ sang trái, hoặc bấm nút nhỏ màu nhạt **Bỏ qua ⏭** dưới thẻ (làm giống hệt thao tác gạt). Thả khi đã kéo quá 1/3 chiều rộng thẻ (hoặc hất nhanh sang trái) thì thẻ trượt đi, sang từ kế tiếp. Chưa quá ngưỡng thì thẻ bật về chỗ cũ. Chỉ kéo được sang trái. Di chuyển dưới 10px tính là chạm, không phải kéo. Viết bằng pointer events, không dùng @dnd-kit.
 - Tiếng "tinh" và "è" tạo bằng Web Audio API (không cần file âm thanh).
 - Có `prefers-reduced-motion`: thay trượt/lắc bằng hiện mờ dần, vẫn phát tiếng.
 - Nghe mẫu dùng lại `lookup` (có cache) + `playPronunciation` (Oxford → dictionaryapi.dev → giọng của trình duyệt). Không phát được thì hiện "🔇 Chưa có tiếng đọc".
 
 ### Luyện nói
-- Thẻ hiện chữ của từ, màu nền theo từ loại như thẻ ở màn chính. **Chạm vào thẻ** thì nghe mẫu.
+- Thẻ hiện hình nhỏ ở trên (emoji 3D/ảnh từ tra cứu, như khối chi tiết) và chữ của từ thật to ở dưới, màu nền theo từ loại như thẻ ở màn chính. Từ chưa có hình thì chỉ hiện chữ. **Chạm vào thẻ** thì nghe mẫu.
 - Dưới thẻ có nút **🎤** to. Bé bấm, nói, nhận dạng tự dừng khi bé im rồi chấm. Đang nghe thì nút đổi trạng thái (nhấp nháy). Đang phát mẫu thì không nghe.
 - Nhận dạng bằng Web Speech API (`SpeechRecognition`/`webkitSpeechRecognition`), `lang = 'en-US'`, `maxAlternatives = 5`, không lấy kết quả tạm.
 - **So khớp** (`matchesWord`, hàm thuần): chuẩn hóa cả hai phía (chữ thường, bỏ dấu câu, coi `-` và `'` như không có). Đúng khi một phương án bất kỳ có một từ trùng với từ cần đọc, hoặc cả phương án ghép liền (bỏ khoảng trắng) trùng với từ cần đọc (`ice cream` khớp `ice-cream`).
+- **Từ đồng âm**: `speech.ts` có bảng vài chục cặp đồng âm thường gặp (bee/be, two/too/to, eye/I, knight/night…). Phương án trùng với từ đồng âm của từ cần đọc cũng tính đúng, vì máy nhận dạng không phân biệt được.
+- Bị chấm sai thì hiện dòng nhỏ màu nhạt dưới thẻ "Máy nghe là: be" (phương án đầu tiên), mất đi khi bé nói lần sau.
 - Không nghe thấy gì (`no-speech`, kết quả rỗng): không tính sai, không phát "è", hiện "Chưa nghe thấy, bé bấm 🎤 nói lại nhé".
 - Trình duyệt không hỗ trợ nhận dạng (ví dụ Firefox): màn luyện nói hiện "Máy này chưa nghe được bé nói — hãy mở bằng Chrome hoặc Safari", vẫn nghe mẫu và bỏ qua được. Bé không cho phép dùng micro: hiện "Bé cần cho phép dùng micro".
 - Giới hạn: chỉ kiểm tra được "máy nghe ra đúng từ đó không", không chấm độ chuẩn từng âm. Chrome gửi tiếng lên máy chủ của Google để nhận dạng, nên cần mạng.
@@ -47,17 +49,22 @@ Web app chỉ có frontend (không backend) cho trẻ 5–10 tuổi: nhập từ
 - Thẻ trắng, không hiện từ. Góc trên có nút **🔊** (nghe lại) và nút **tẩy** (xóa hết chữ đã gõ).
 - Giữa thẻ là ô gõ chữ to (nút Xong ✓ ngay dưới ô), tắt tự sửa và gợi ý của bàn phím: `autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck={false}`. Bé bấm Enter hoặc nút **Xong ✓** để kiểm tra. Ô trống thì không kiểm tra.
 - Thẻ hiện lên thì app tự đọc mẫu một lần. Âm thanh được "mở khóa" (`unlockAudio`) trong thao tác bấm vào màn luyện và mỗi lần bấm kiểm tra, để iPhone cho phát.
-- So khớp: bỏ khoảng trắng hai đầu, không phân biệt hoa thường, phải trùng hoàn toàn (kể cả `-` và `'`).
+- So khớp: bỏ khoảng trắng hai đầu, không phân biệt hoa thường, phải trùng hoàn toàn (kể cả `-` và `'`). Không chấp nhận từ đồng âm.
+- Không hiện số ô chữ hay gợi ý độ dài.
+- Từ có từ đồng âm trong bảng (app đọc "two", bé có thể viết "too"): luôn hiện nghĩa tiếng Việt ("hai") trên thẻ để bé biết cần viết từ nào.
+- Không phát được tiếng nào: hiện "🔇 Chưa có tiếng đọc" kèm hình và nghĩa tiếng Việt của từ làm gợi ý, không hiện chữ tiếng Anh.
 - Sai: tiếng "è", thẻ lắc, ô gõ bị xóa trắng và giữ con trỏ trong ô.
 
 ### Kết quả
 - Hết thẻ cuối (đúng hoặc bỏ qua) thì sang màn kết quả: điểm **% = số từ làm đúng / số từ của lượt**, làm tròn. Làm sai rồi làm lại đúng vẫn tính là đúng; chỉ từ bị bỏ qua là sai.
+- Sao theo điểm: 3 ⭐ khi ≥ 90%, 2 ⭐ khi ≥ 60%, 1 ⭐ khi thấp hơn. Đạt 100% thì phát tiếng "tinh" dài hơn (Web Audio), không có pháo hoa.
 - Bên dưới là các từ bị bỏ qua. Nhấn một từ thì mở lại thẻ của từ đó (cùng chế độ, có thể làm sai nhiều lần hoặc gạt đi để thôi). Làm đúng thì quay về màn kết quả và từ đó được đánh ✅. **Điểm không đổi.** Làm đúng ở đây cũng đưa số lần bỏ qua của từ về 0.
 - Hai nút: **Luyện lượt mới** (chọn lại từ) và **Về danh sách**.
+- Lượt đang làm dở không được lưu: tải lại trang hoặc rời app thì làm lại từ đầu (số lần bỏ qua của các từ đã làm vẫn còn vì ghi ngay).
 
 ### Cấu trúc code
 - `src/lib/practice.ts` (thuần, có test): `pickRound(words, skipCounts, random)`, reducer trạng thái lượt (`correct` / `wrong` / `skip` / `retry` → `results`), `score()`.
-- `src/lib/speech.ts`: bọc `SpeechRecognition` (hỗ trợ không, nghe một lần → phương án hoặc lỗi), `matchesWord` (có test).
+- `src/lib/speech.ts`: bọc `SpeechRecognition` (hỗ trợ không, nghe một lần → phương án hoặc lỗi), `matchesWord` và bảng từ đồng âm (có test).
 - `src/lib/sfx.ts`: tiếng tinh / è bằng Web Audio.
 - `src/lib/storage.ts`: thêm đọc/ghi số lần bỏ qua theo chế độ; xóa từ thì dọn số liệu.
 - `src/components/PracticeScreen.tsx` (khung chung: tiến độ, vuốt thẻ, kết quả), `SpeakCard.tsx`, `WriteCard.tsx`.
@@ -85,3 +92,4 @@ Vite + React + TypeScript, Vitest + Testing Library, tesseract.js. PWA bằng ma
 ## Giới hạn đã biết
 - Production chạy trên Vercel với một hàm serverless duy nhất (`/api/oxford`, chỉ nhận một từ, không phải proxy mở) vì proxy công cộng corsfix không cho domain chưa đăng ký. Mọi thứ khác vẫn chạy trong trình duyệt.
 - Ảnh ưu tiên thứ gần gũi với trẻ em và đời sống hiện tại: emoji 3D trước, ảnh bách khoa sau (ảnh Wikipedia có thể cũ, ví dụ máy tính thế hệ đầu). Bảng emoji dựng bằng `node scripts/build-emoji-index.mjs`; sửa tay ở `scripts/emoji-overrides.json`.
+- Luyện nói dựa vào Web Speech API: Firefox không có; Chrome cần mạng. Chưa kiểm chứng: trên iPhone, nhận dạng giọng nói có thể không chạy khi app mở từ biểu tượng ngoài màn hình chính (PWA) dù chạy trong Safari. Cần thử trên máy thật.
