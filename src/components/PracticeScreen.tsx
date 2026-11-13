@@ -50,6 +50,8 @@ export function PracticeScreen({
   const [redo, setRedo] = useState<{ word: string; n: number } | null>(null)
   const redoCount = useRef(0)
   const fanfared = useRef(-1)
+  /** Khóa của thẻ đang hiện; lượt phát mẫu đến muộn của thẻ khác bị bỏ. */
+  const activeKey = useRef<string | null>(null)
 
   const dispatch = (a: RoundAction) => setRound((r) => roundReducer(r, a))
   const finished = isDone(round)
@@ -65,9 +67,11 @@ export function PracticeScreen({
   const save = (fn: (c: SkipCounts, w: string) => SkipCounts, word: string) =>
     saveSkipCounts(mode, fn(loadSkipCounts(mode), word))
 
-  const playModelFor = (word: string) => async (): Promise<PlayResult> => {
+  const playModelFor = (word: string, key: string) => async (): Promise<PlayResult> => {
     let info: WordInfo | null = infos[word.toLowerCase()] ?? getCached(word)
+    let waited = false
     if (!info) {
+      waited = true
       try {
         info = await lookupCached(word)
         onInfo(info)
@@ -75,23 +79,29 @@ export function PracticeScreen({
         info = null
       }
     }
+    if (waited && activeKey.current !== key) return 'audio'
     return playPronunciation(info ? usAudioUrls(info) : undefined, word)
   }
 
   const stage = (word: string, hasNext: boolean, onCorrect: () => void, onSkip: () => void, key: string) => {
     const props: StageProps = {
       word,
-      info: infos[word.toLowerCase()] ?? null,
+      info: infos[word.toLowerCase()] ?? getCached(word),
       hasNext,
       onCorrect,
       onSkip,
-      playModel: playModelFor(word),
+      playModel: playModelFor(word, key),
     }
     // Chế độ nói do SpeakCard (Task 5) đảm nhận.
     return mode === 'write' ? <WriteCard key={key} {...props} /> : null
   }
 
   const word = currentWord(round)
+  const cardKey = redo ? `redo-${redo.n}` : finished || word === undefined ? 'results' : `${roundId}-${round.outcomes.length}`
+  useEffect(() => {
+    activeKey.current = cardKey
+  })
+  useEffect(() => () => { activeKey.current = null }, [])
   let body
   if (redo) {
     body = stage(
@@ -103,7 +113,7 @@ export function PracticeScreen({
         setRedo(null)
       },
       () => setRedo(null),
-      `redo-${redo.n}`,
+      cardKey,
     )
   } else if (finished || word === undefined) {
     body = (
@@ -129,7 +139,7 @@ export function PracticeScreen({
         dispatch({ type: 'skip' })
         save(recordSkip, word)
       },
-      `${roundId}-${round.outcomes.length}`,
+      cardKey,
     )
   }
 

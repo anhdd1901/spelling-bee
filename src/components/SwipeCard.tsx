@@ -15,6 +15,7 @@ export function SwipeCard({
   onSkip,
   onLeave,
   onTap,
+  skipSignal = 0,
   className,
   style,
   children,
@@ -25,6 +26,8 @@ export function SwipeCard({
   /** Gọi ngay khi thẻ bắt đầu trượt đi (bỏ qua); cha nối với `lock` của useFeedback. */
   onLeave?(): void
   onTap?(): void
+  /** Tăng số này để một nút bấm bắt đầu đúng chuỗi trượt đi như khi gạt (onLeave, rồi onSkip sau LEAVE_MS). */
+  skipSignal?: number
   className?: string
   style?: CSSProperties
   children: ReactNode
@@ -41,6 +44,22 @@ export function SwipeCard({
   })
 
   useEffect(() => () => clearTimeout(timer.current), [])
+
+  function startLeave(delta: number) {
+    if (timer.current) return
+    setLeaving(true)
+    setLeaveDx(delta)
+    onLeave?.()
+    timer.current = setTimeout(() => skipRef.current(), LEAVE_MS)
+  }
+
+  const lastSignal = useRef(skipSignal)
+  useEffect(() => {
+    if (skipSignal === lastSignal.current) return
+    lastSignal.current = skipSignal
+    startLeave(0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [skipSignal])
 
   function down(e: PointerEvent<HTMLDivElement>) {
     if (leaving || feedback === 'right') return
@@ -80,10 +99,7 @@ export function SwipeCard({
     const velocity = first && now > first.t ? (e.clientX - first.x) / (now - first.t) : 0
     const width = e.currentTarget.offsetWidth || e.currentTarget.getBoundingClientRect().width
     if (swipeDecision(delta, width, velocity) === 'skip') {
-      setLeaving(true)
-      setLeaveDx(delta)
-      onLeave?.()
-      timer.current = setTimeout(() => skipRef.current(), LEAVE_MS)
+      startLeave(delta)
     } else {
       setDx(0)
     }

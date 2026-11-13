@@ -2,10 +2,11 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { WordInfo } from '../lib/lookup'
 
+const cached = vi.fn((_w: string): WordInfo | null => null)
 const lookup = vi.fn(async (w: string): Promise<WordInfo> => info(w))
 vi.mock('../lib/lookup', async (importActual) => ({
   usAudioUrls: (await importActual<typeof import('../lib/lookup')>()).usAudioUrls,
-  getCached: () => null,
+  getCached: (w: string) => cached(w),
   lookupCached: (w: string) => lookup(w),
 }))
 const play = vi.fn().mockResolvedValue('audio')
@@ -58,7 +59,7 @@ async function answer() {
 }
 async function skip() {
   fireEvent.click(screen.getByRole('button', { name: 'Bỏ qua ⏭' }))
-  await settle()
+  await settle(400)
 }
 
 describe('PracticeScreen luyện viết', () => {
@@ -68,6 +69,7 @@ describe('PracticeScreen luyện viết', () => {
     vi.clearAllMocks()
     play.mockResolvedValue('audio')
     lookup.mockImplementation(async (w: string) => info(w))
+    cached.mockReset().mockReturnValue(null)
   })
   afterEach(() => vi.useRealTimers())
 
@@ -137,7 +139,7 @@ describe('PracticeScreen luyện viết', () => {
     const b = screen.getByRole('button', { name: 'Bỏ qua ⏭' })
     fireEvent.click(b)
     fireEvent.click(b)
-    await settle()
+    await settle(400)
     expect(screen.getByRole('list', { name: 'Từ 2 trên 3' })).toBeInTheDocument()
   })
 
@@ -279,6 +281,42 @@ describe('PracticeScreen luyện viết', () => {
   it('từ thường không hiện nghĩa khi có tiếng', async () => {
     await mount(['cat'], { infos: { cat: info('cat') } })
     expect(screen.queryByText('nghĩa cat')).toBeNull()
+  })
+
+  it('Bỏ qua ⏭ làm giống cú gạt: thẻ trượt đi, rồi onSkip một lần; gõ đúng lúc đó không tính', async () => {
+    await mount(['cat', 'dog', 'bird'])
+    const first = current()
+    fireEvent.click(screen.getByRole('button', { name: 'Bỏ qua ⏭' }))
+    expect(document.querySelector('.practice-card')).toHaveClass('leaving')
+    expect(screen.getByRole('list', { name: 'Từ 1 trên 3' })).toBeInTheDocument()
+    expect(loadSkipCounts('write')[first]).toBeUndefined()
+    type(first)
+    done()
+    expect(playDing).not.toHaveBeenCalled()
+    await settle(400)
+    expect(loadSkipCounts('write')[first]).toBe(1)
+    expect(screen.getByRole('list', { name: 'Từ 2 trên 3' })).toBeInTheDocument()
+  })
+
+  it('tra từ xong sau khi đã bỏ qua → không phát tiếng của từ cũ', async () => {
+    let release: (i: WordInfo) => void = () => {}
+    lookup.mockImplementationOnce(() => new Promise<WordInfo>((r) => { release = r }))
+    await mount(['cat', 'dog'])
+    expect(play).not.toHaveBeenCalled()
+    await skip()
+    const second = current()
+    const calls = play.mock.calls.length
+    await act(async () => { release(info('late')) })
+    expect(play).toHaveBeenCalledTimes(calls)
+    expect(current()).toBe(second)
+  })
+
+  it('từ đã có trong cache nhưng chưa có trong infos: thẻ vẫn có hình và nghĩa khi không có tiếng', async () => {
+    play.mockResolvedValue('none')
+    cached.mockImplementation((w) => info(w))
+    await mount(['cat'])
+    expect(document.querySelector('img')).toHaveAttribute('src', 'https://img/cat.jpg')
+    expect(screen.getByText('nghĩa cat')).toBeInTheDocument()
   })
 
   it('ô gõ tắt tự sửa', async () => {

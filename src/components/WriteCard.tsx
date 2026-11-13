@@ -22,20 +22,26 @@ export function WriteCard({ word, info, hasNext, onCorrect, onSkip, playModel }:
   const [noSound, setNoSound] = useState(false)
   const input = useRef<HTMLInputElement>(null)
   const settled = useRef(false)
+  const mounted = useRef(true)
+  const [skipSignal, setSkipSignal] = useState(0)
   const { feedback, right, wrong, lock } = useFeedback(onCorrect)
 
   const hear = () => {
-    void playModel().then((r) => setNoSound(r === 'none'))
+    void playModel().then((r) => {
+      if (mounted.current) setNoSound(r === 'none')
+    })
   }
 
   const started = useRef(false)
   useEffect(() => {
+    mounted.current = true
     input.current?.focus()
     if (started.current) return
     started.current = true
     hear()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+  useEffect(() => () => { mounted.current = false }, [])
 
   const submit = (e?: FormEvent) => {
     e?.preventDefault()
@@ -59,16 +65,16 @@ export function WriteCard({ word, info, hasNext, onCorrect, onSkip, playModel }:
     lock()
   }
 
+  // Nút cũng đi qua đúng chuỗi của cú gạt: SwipeCard gọi leave rồi onSkip.
   const skip = () => {
     if (settled.current) return
-    leave()
-    onSkip()
+    setSkipSignal((n) => n + 1)
   }
 
   const showMeaning = !!info?.meaningVi && (noSound || homophonesOf(word).length > 0)
 
   return (
-    <SwipeCard feedback={feedback} hasNext={hasNext} onSkip={onSkip} onLeave={leave} className="write-card">
+    <SwipeCard feedback={feedback} hasNext={hasNext} onSkip={onSkip} onLeave={leave} skipSignal={skipSignal} className="write-card">
       <div className="write-body">
         <button type="button" className="icon-btn listen" aria-label="Nghe lại" onClick={() => { unlockAudio(); hear() }}>
           🔊
