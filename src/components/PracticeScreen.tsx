@@ -18,6 +18,7 @@ import { playFanfare } from '../lib/sfx'
 import { loadSkipCounts, saveSkipCounts } from '../lib/storage'
 import { Honeycomb } from './Honeycomb'
 import { PracticeResults } from './PracticeResults'
+import { SpeakCard } from './SpeakCard'
 import { WriteCard } from './WriteCard'
 
 export interface StageProps {
@@ -92,8 +93,7 @@ export function PracticeScreen({
       onSkip,
       playModel: playModelFor(word, key),
     }
-    // Chế độ nói do SpeakCard (Task 5) đảm nhận.
-    return mode === 'write' ? <WriteCard key={key} {...props} /> : null
+    return mode === 'write' ? <WriteCard key={key} {...props} /> : <SpeakCard key={key} {...props} />
   }
 
   const word = currentWord(round)

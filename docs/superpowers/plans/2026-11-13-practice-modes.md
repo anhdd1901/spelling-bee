@@ -382,7 +382,7 @@ Quyết định:
 - `speechSupported()` là `false`: không vẽ nút 🎤, hiện `Máy này chưa nghe được bé nói — hãy mở bằng Chrome hoặc Safari`; chạm thẻ nghe mẫu và `Bỏ qua ⏭` vẫn dùng được.
 - Nút chữ nhỏ `Bỏ qua ⏭` dưới nút 🎤 → `onSkip`.
 
-- [ ] **Step 1: Viết test (fail).** Mock `../lib/speech` giữ `matchesWord` thật (`importActual`), thay `speechSupported` và `listenOnce` bằng bản giả trả `{ result: promise điều khiển được, stop: vi.fn() }`. Mock `../lib/sfx`, `../lib/audio`.
+- [x] **Step 1: Viết test (fail).** Mock `../lib/speech` giữ `matchesWord` thật (`importActual`), thay `speechSupported` và `listenOnce` bằng bản giả trả `{ result: promise điều khiển được, stop: vi.fn() }`. Mock `../lib/sfx`, `../lib/audio`.
 
 ```ts
 it('hiện chữ và hình của từ; chạm thẻ thì đọc mẫu', …)
