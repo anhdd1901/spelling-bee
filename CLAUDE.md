@@ -44,6 +44,7 @@ Vite 8 + React 19 + TypeScript 7, Vitest 5 + Testing Library (jsdom), tesseract.
 - `SwipeCard`/`useFeedback` chỉ dùng cho một từ: đổi từ thì remount bằng `key` mới; thẻ phải truyền `onLeave={lock}` để bỏ qua và làm đúng không cùng xảy ra; nút Bỏ qua đi qua `skipSignal` để trượt giống thao tác gạt.
 - Số lần bỏ qua lưu ở `spelling-kids:skips:<speak|write>:v1`; xóa từ thì `App` dọn số liệu bằng `pruneSkips`.
 - `.practice` nằm trong `.app` (flex), không tự đặt `100dvh`. CSS của màn luyện phải bọc trong `.practice …` khi trùng tên class với màn chính (ví dụ `.icon-btn`, `.no-sound`). Bố cục gọn khi bàn phím điện thoại mở dùng class `kb-open` (theo `visualViewport`), vì media query chiều cao không chạy khi bàn phím bật.
+- Còn worktree trong `.claude/worktrees/` thì `npx vitest run` ở thư mục gốc quét cả bản sao đó (React trùng → hàng loạt test lỗi giả): dọn worktree trước, hoặc chạy test ngay trong worktree.
 - Ảnh mẫu để thử OCR: `docs/samples/ocr-test.png`.
 - tesseract.js tải worker + dữ liệu ngôn ngữ từ CDN ở lần dùng đầu (~10MB), nên cần mạng.
 - Audio trên iOS chỉ phát được khi gắn với thao tác bấm của người dùng: gọi `play()` ngay trong handler click.
