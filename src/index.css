@@ -338,16 +338,20 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
   .detail-picture { width: 160px; align-self: start; }
 }
 
+@media (max-width: 860px) {
+  .tagline { display: none; }
+}
+
 /* ---------- mobile ---------- */
 @media (max-width: 640px) {
   .app { gap: 14px; padding-left: 12px; padding-right: 12px; }
   .hero { gap: 12px; margin-bottom: 12px; }
   .logo { width: 54px; height: 54px; font-size: 32px; border-radius: 16px; }
-  .tagline { display: none; }
-  .hero { flex-wrap: wrap; align-items: center; }
-  .hero-text { flex: 1 1 0; }
-  .hero-actions { flex: 1 1 100%; order: 3; gap: 8px; }
-  .hero-actions .btn { flex: 1; min-height: 44px; font-size: 1rem; padding: 2px 8px; }
+  .hero { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 12px; row-gap: 6px; align-items: center; }
+  .hero .logo { grid-column: 1; grid-row: 1 / span 2; }
+  .hero-text { grid-column: 2; grid-row: 1; }
+  .hero-actions { grid-column: 2; grid-row: 2; gap: 8px; }
+  .hero-actions .btn { flex: 1; min-height: 40px; font-size: 0.95rem; padding: 2px 8px; }
   .panel { padding: 12px; border-radius: 22px; }
   .type-row { gap: 8px; }
   .big-input { font-size: 1.2rem; padding: 8px 12px; border-radius: 16px; }
