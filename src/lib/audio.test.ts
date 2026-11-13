@@ -24,3 +24,29 @@ describe('playPronunciation', () => {
     vi.unstubAllGlobals()
   })
 })
+
+describe('stopPlayback', () => {
+  it('pauses the shared player and cancels speechSynthesis; safe when neither exists', async () => {
+    vi.resetModules()
+    const { stopPlayback } = await import('./audio')
+    expect(() => stopPlayback()).not.toThrow()
+
+    const pause = vi.fn()
+    class FakeAudio {
+      src = ''
+      paused = true
+      pause = pause
+      play() { return Promise.resolve() }
+    }
+    const cancel = vi.fn()
+    vi.stubGlobal('Audio', FakeAudio)
+    vi.stubGlobal('speechSynthesis', { cancel, getVoices: () => [], addEventListener: vi.fn() })
+    vi.resetModules()
+    const audio = await import('./audio')
+    audio.unlockAudio()
+    audio.stopPlayback()
+    expect(pause).toHaveBeenCalled()
+    expect(cancel).toHaveBeenCalledTimes(1)
+    vi.unstubAllGlobals()
+  })
+})

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
-import { unlockAudio } from '../lib/audio'
+import { stopPlayback, unlockAudio } from '../lib/audio'
 import { posColor } from '../lib/pos'
+import { primeSfx } from '../lib/sfx'
 import { listenOnce, matchesWord, speechSupported } from '../lib/speech'
 import type { ListenResult, Listening } from '../lib/speech'
 import { FitText } from './FitText'
@@ -42,6 +43,7 @@ export function SpeakCard({ word, info, hasNext, onCorrect, onSkip, playModel }:
   }, [])
 
   const hear = () => {
+    if (settled.current || session.current) return
     unlockAudio()
     playing.current = true
     void playModel().then(
@@ -63,6 +65,8 @@ export function SpeakCard({ word, info, hasNext, onCorrect, onSkip, playModel }:
   const speak = () => {
     if (settled.current || session.current || playing.current) return
     setNotice('')
+    stopPlayback()
+    primeSfx()
     const s = listenOnce()
     session.current = s
     setListening(true)

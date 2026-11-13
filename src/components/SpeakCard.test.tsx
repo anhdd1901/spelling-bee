@@ -3,8 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { WordInfo } from '../lib/lookup'
 import type { ListenResult } from '../lib/speech'
 
-vi.mock('../lib/audio', () => ({ unlockAudio: vi.fn(), playPronunciation: vi.fn() }))
-vi.mock('../lib/sfx', () => ({ playDing: vi.fn(), playBuzz: vi.fn(), playFanfare: vi.fn() }))
+vi.mock('../lib/audio', () => ({ unlockAudio: vi.fn(), playPronunciation: vi.fn(), stopPlayback: vi.fn() }))
+vi.mock('../lib/sfx', () => ({ playDing: vi.fn(), playBuzz: vi.fn(), playFanfare: vi.fn(), primeSfx: vi.fn() }))
 
 type Session = { resolve(r: ListenResult): void; stop: ReturnType<typeof vi.fn> }
 const sessions: Session[] = []
@@ -24,8 +24,8 @@ vi.mock('../lib/speech', async (importActual) => ({
 
 import { SpeakCard } from './SpeakCard'
 import { PracticeScreen } from './PracticeScreen'
-import { unlockAudio } from '../lib/audio'
-import { playBuzz, playDing } from '../lib/sfx'
+import { stopPlayback, unlockAudio } from '../lib/audio'
+import { playBuzz, playDing, primeSfx } from '../lib/sfx'
 import { RIGHT_MS } from './useFeedback'
 
 const info: WordInfo = { word: 'bee', headword: 'bee', pos: [{ en: 'noun', vi: 'Danh từ', meanings: ['con ong'] }], meaningVi: 'con ong', image: 'https://img/bee.jpg', source: 'oxford' }
@@ -151,6 +151,39 @@ describe('SpeakCard', () => {
     await press()
     await press()
     expect(listen).toHaveBeenCalledTimes(1)
+  })
+
+  it('bấm 🎤: dừng tiếng mẫu và mở khóa sfx, đều trước listenOnce', async () => {
+    const order: string[] = []
+    vi.mocked(stopPlayback).mockImplementation(() => { order.push('stop') })
+    vi.mocked(primeSfx).mockImplementation(() => { order.push('prime') })
+    listen.mockImplementationOnce(() => {
+      order.push('listen')
+      return { result: new Promise<ListenResult>(() => {}), stop: vi.fn() }
+    })
+    setup()
+    await press()
+    expect(order).toEqual(['stop', 'prime', 'listen'])
+  })
+
+  it('chạm thẻ hoặc Enter khi đang nghe không phát mẫu', async () => {
+    const { props } = setup()
+    await press()
+    const card = screen.getByRole('button', { name: 'Nghe đọc mẫu bee' })
+    await act(async () => {
+      fireEvent.pointerDown(card, { pointerId: 1, clientX: 100, clientY: 10 })
+      fireEvent.pointerUp(card, { pointerId: 1, clientX: 100, clientY: 10 })
+      fireEvent.keyDown(card, { key: 'Enter' })
+    })
+    expect(props.playModel).not.toHaveBeenCalled()
+  })
+
+  it('Enter sau khi đã đúng không phát mẫu', async () => {
+    const { props } = setup()
+    await press()
+    await hear(0, { kind: 'heard', alternatives: ['bee'] })
+    await act(async () => { fireEvent.keyDown(screen.getByRole('button', { name: 'Nghe đọc mẫu bee' }), { key: 'Enter' }) })
+    expect(props.playModel).not.toHaveBeenCalled()
   })
 
   it('đang đọc mẫu thì bấm 🎤 bị bỏ qua', async () => {

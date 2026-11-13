@@ -13,6 +13,14 @@ export function unlockAudio() {
   a.play().catch(() => {})
 }
 
+/** Dừng tiếng đang phát (mp3 và giọng đọc của máy); không ném lỗi khi thiếu. */
+export function stopPlayback(): void {
+  try { el?.pause() } catch { /* bỏ qua */ }
+  try {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) speechSynthesis.cancel()
+  } catch { /* bỏ qua */ }
+}
+
 /** Trình duyệt có giọng đọc không (Chrome/Brave trên Linux thường không có). Danh sách giọng có thể nạp trễ. */
 export function hasBrowserVoices(waitMs = 600): Promise<boolean> {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return Promise.resolve(false)

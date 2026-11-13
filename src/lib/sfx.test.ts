@@ -16,6 +16,23 @@ describe('sfx', () => {
     }).not.toThrow()
   })
 
+  it('primeSfx: không AudioContext thì không lỗi; có thì tạo và resume ngay', async () => {
+    vi.resetModules()
+    const { primeSfx } = await import('./sfx')
+    expect(() => primeSfx()).not.toThrow()
+
+    const resume = vi.fn()
+    class FakeCtx {
+      state = 'suspended'
+      resume = resume
+    }
+    vi.stubGlobal('AudioContext', FakeCtx)
+    vi.resetModules()
+    const sfx = await import('./sfx')
+    sfx.primeSfx()
+    expect(resume).toHaveBeenCalledTimes(1)
+  })
+
   it('có AudioContext thì tạo oscillator và start', async () => {
     vi.resetModules()
     let created = 0

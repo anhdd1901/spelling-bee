@@ -17,6 +17,11 @@ function getCtx(): AudioContext | null {
   }
 }
 
+/** Gọi đồng bộ trong handler click: tạo/đánh thức AudioContext để tiếng ding/buzz đến sau còn phát được (iOS). */
+export function primeSfx(): void {
+  getCtx()
+}
+
 /** Một nốt: tần số `from` (trượt tới `to` nếu có), bắt đầu sau `at` giây, dài `dur` giây. */
 function tone(c: AudioContext, type: OscillatorType, from: number, at: number, dur: number, gain: number, to?: number) {
   const t0 = c.currentTime + at
