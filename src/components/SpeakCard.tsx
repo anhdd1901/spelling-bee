@@ -28,8 +28,6 @@ export function SpeakCard({ word, info, hasNext, onCorrect, onSkip, playModel }:
   const settled = useRef(false)
   const mounted = useRef(true)
   const session = useRef<Listening | null>(null)
-  /** Đang đọc mẫu (từ lúc bấm thẻ đến khi playModel xong): bấm 🎤 bị bỏ qua. */
-  const playing = useRef(false)
   const { feedback, right, wrong, lock } = useFeedback(onCorrect)
   const supported = speechSupported()
 
@@ -45,13 +43,10 @@ export function SpeakCard({ word, info, hasNext, onCorrect, onSkip, playModel }:
   const hear = () => {
     if (settled.current || session.current) return
     unlockAudio()
-    playing.current = true
-    void playModel().then(
-      (r) => {
-        playing.current = false
-        if (mounted.current) setNoSound(r === 'none')
-      },
-      () => { playing.current = false },
+    // Tra từ xong muộn mà bé đã bấm 🎤 thì không phát mẫu vào micro.
+    void playModel(() => !session.current && !settled.current).then(
+      (r) => { if (mounted.current) setNoSound(r === 'none') },
+      () => {},
     )
   }
 
@@ -63,7 +58,7 @@ export function SpeakCard({ word, info, hasNext, onCorrect, onSkip, playModel }:
   }
 
   const speak = () => {
-    if (settled.current || session.current || playing.current) return
+    if (settled.current || session.current) return
     setNotice('')
     stopPlayback()
     primeSfx()
@@ -120,7 +115,8 @@ export function SpeakCard({ word, info, hasNext, onCorrect, onSkip, playModel }:
       style={{ backgroundColor: posColor(info?.pos[0]?.en).bg }}
     >
       <div className="speak-body">
-        <div className="speak-face" role="button" tabIndex={0} aria-label={`Nghe đọc mẫu ${word}`} onKeyDown={onKey}>
+        <div className="speak-face" role="button" tabIndex={0} aria-label={`Nghe đọc mẫu ${word}`} onKeyDown={onKey}
+          onClick={(e) => { if (e.detail === 0) hear() }}>
           {info?.image && <img className="speak-image" src={info.image} alt="" draggable={false} />}
           <div className="speak-word">
             <FitText text={word} />

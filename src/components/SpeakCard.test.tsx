@@ -3,6 +3,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { WordInfo } from '../lib/lookup'
 import type { ListenResult } from '../lib/speech'
 
+const cachedMock = vi.fn((_w: string): WordInfo | null => null)
+const lookup = vi.fn(async (w: string): Promise<WordInfo> => ({ ...info0(w) }))
+function info0(w: string): WordInfo { return { word: w, headword: w, pos: [], meaningVi: '', source: 'oxford' } }
+vi.mock('../lib/lookup', async (importActual) => ({
+  ...(await importActual<typeof import('../lib/lookup')>()),
+  getCached: (w: string) => cachedMock(w),
+  lookupCached: (w: string) => lookup(w),
+}))
 vi.mock('../lib/audio', () => ({ unlockAudio: vi.fn(), playPronunciation: vi.fn(), stopPlayback: vi.fn() }))
 vi.mock('../lib/sfx', () => ({ playDing: vi.fn(), playBuzz: vi.fn(), playFanfare: vi.fn(), primeSfx: vi.fn() }))
 
@@ -186,17 +194,33 @@ describe('SpeakCard', () => {
     expect(props.playModel).not.toHaveBeenCalled()
   })
 
-  it('đang đọc mẫu thì bấm 🎤 bị bỏ qua', async () => {
+  it('đang đọc mẫu (chưa xong) bấm 🎤 vẫn nghe được', async () => {
     const { props } = setup()
-    let finish!: (v: 'audio') => void
-    props.playModel.mockReturnValue(new Promise((r) => { finish = r }))
+    props.playModel.mockReturnValue(new Promise(() => {}))
     const card = screen.getByRole('button', { name: 'Nghe đọc mẫu bee' })
     await act(async () => { fireEvent.keyDown(card, { key: 'Enter' }) })
     await press()
-    expect(listen).not.toHaveBeenCalled()
-    await act(async () => { finish('audio') })
-    await press()
+    expect(stopPlayback).toHaveBeenCalled()
     expect(listen).toHaveBeenCalledTimes(1)
+  })
+
+  it('đọc mẫu truyền canPlay: false khi đang nghe', async () => {
+    const { props } = setup()
+    const card = screen.getByRole('button', { name: 'Nghe đọc mẫu bee' })
+    await act(async () => { fireEvent.keyDown(card, { key: 'Enter' }) })
+    const canPlay = props.playModel.mock.calls[0][0] as () => boolean
+    expect(canPlay()).toBe(true)
+    await press()
+    expect(canPlay()).toBe(false)
+  })
+
+  it('kích hoạt bằng trình đọc màn hình (click detail 0) thì đọc mẫu', async () => {
+    const { props } = setup()
+    const card = screen.getByRole('button', { name: 'Nghe đọc mẫu bee' })
+    await act(async () => { fireEvent.click(card, { detail: 0 }) })
+    expect(props.playModel).toHaveBeenCalledTimes(1)
+    await act(async () => { fireEvent.click(card, { detail: 1 }) })
+    expect(props.playModel).toHaveBeenCalledTimes(1)
   })
 
   it('unmount khi đang nghe → gọi stop(); kết quả đến sau không gọi onCorrect, không phát tiếng', async () => {
@@ -242,5 +266,54 @@ describe('SpeakCard', () => {
     expect(screen.getByRole('heading', { name: 'Luyện nói' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Nghe đọc mẫu bee' })).toBeInTheDocument()
     expect(mic()).toBeInTheDocument()
+  })
+
+  it('tra từ xong khi bé đã bấm 🎤 → không phát mẫu; unmount thì dừng tiếng', async () => {
+    const { playPronunciation } = await import('../lib/audio')
+    let release!: (i: WordInfo) => void
+    lookup.mockImplementationOnce(() => new Promise<WordInfo>((r) => { release = r }))
+    cachedMock.mockReturnValue(null)
+    let view!: ReturnType<typeof render>
+    await act(async () => {
+      view = render(
+        <PracticeScreen mode="speak" words={['bee']} infos={{}} onInfo={vi.fn()} onExit={vi.fn()} random={() => 0} />,
+      )
+    })
+    const card = screen.getByRole('button', { name: 'Nghe đọc mẫu bee' })
+    await act(async () => { fireEvent.keyDown(card, { key: 'Enter' }) })
+    await press()
+    await act(async () => { release(info) })
+    expect(playPronunciation).not.toHaveBeenCalled()
+    vi.mocked(stopPlayback).mockClear()
+    view.unmount()
+    expect(stopPlayback).toHaveBeenCalled()
+  })
+
+  it('bàn phím ảo (visualViewport thấp) thêm lớp kb-open, gỡ listener khi unmount', async () => {
+    const vv = Object.assign(new EventTarget(), { height: 800 })
+    const orig = Object.getOwnPropertyDescriptor(window, 'visualViewport')
+    Object.defineProperty(window, 'visualViewport', { configurable: true, value: vv })
+    const remove = vi.spyOn(vv, 'removeEventListener')
+    try {
+      let view!: ReturnType<typeof render>
+      await act(async () => {
+        view = render(
+          <PracticeScreen mode="speak" words={['bee']} infos={{ bee: info }} onInfo={vi.fn()} onExit={vi.fn()} random={() => 0} />,
+        )
+      })
+      const main = () => view.container.querySelector('main')!
+      expect(main()).not.toHaveClass('kb-open')
+      vv.height = 300
+      await act(async () => { vv.dispatchEvent(new Event('resize')) })
+      expect(main()).toHaveClass('kb-open')
+      vv.height = 800
+      await act(async () => { vv.dispatchEvent(new Event('resize')) })
+      expect(main()).not.toHaveClass('kb-open')
+      view.unmount()
+      expect(remove).toHaveBeenCalledWith('resize', expect.any(Function))
+    } finally {
+      if (orig) Object.defineProperty(window, 'visualViewport', orig)
+      else delete (window as unknown as Record<string, unknown>).visualViewport
+    }
   })
 })

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { playPronunciation } from '../lib/audio'
+import { playPronunciation, stopPlayback } from '../lib/audio'
 import type { PlayResult } from '../lib/audio'
 import { getCached, lookupCached, usAudioUrls } from '../lib/lookup'
 import type { WordInfo } from '../lib/lookup'
@@ -27,7 +27,8 @@ export interface StageProps {
   hasNext: boolean
   onCorrect(): void
   onSkip(): void
-  playModel(): Promise<PlayResult>
+  /** `canPlay`: hỏi lại sau khi tra từ xong; trả false thì không phát. */
+  playModel(canPlay?: () => boolean): Promise<PlayResult>
 }
 
 export function PracticeScreen({
@@ -68,7 +69,7 @@ export function PracticeScreen({
   const save = (fn: (c: SkipCounts, w: string) => SkipCounts, word: string) =>
     saveSkipCounts(mode, fn(loadSkipCounts(mode), word))
 
-  const playModelFor = (word: string, key: string) => async (): Promise<PlayResult> => {
+  const playModelFor = (word: string, key: string) => async (canPlay?: () => boolean): Promise<PlayResult> => {
     let info: WordInfo | null = infos[word.toLowerCase()] ?? getCached(word)
     let waited = false
     if (!info) {
@@ -80,7 +81,7 @@ export function PracticeScreen({
         info = null
       }
     }
-    if (waited && activeKey.current !== key) return 'audio'
+    if (waited && (activeKey.current !== key || canPlay?.() === false)) return 'audio'
     return playPronunciation(info ? usAudioUrls(info) : undefined, word)
   }
 
@@ -101,7 +102,21 @@ export function PracticeScreen({
   useEffect(() => {
     activeKey.current = cardKey
   })
-  useEffect(() => () => { activeKey.current = null }, [])
+  useEffect(() => () => {
+    activeKey.current = null
+    stopPlayback()
+  }, [])
+
+  // Bàn phím ảo chỉ thu nhỏ visual viewport, không kích hoạt media query max-height.
+  const [kbOpen, setKbOpen] = useState(false)
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    const update = () => setKbOpen(vv.height < 520 || vv.height < 0.75 * window.innerHeight)
+    update()
+    vv.addEventListener('resize', update)
+    return () => vv.removeEventListener('resize', update)
+  }, [])
   let body
   if (redo) {
     body = stage(
@@ -144,7 +159,7 @@ export function PracticeScreen({
   }
 
   return (
-    <main className="practice">
+    <main className={`practice${kbOpen ? ' kb-open' : ''}`}>
       <header className="practice-top">
         <button type="button" className="icon-btn back" aria-label="Quay lại danh sách" onClick={onExit}>←</button>
         <h1>{mode === 'speak' ? 'Luyện nói' : 'Luyện viết'}</h1>

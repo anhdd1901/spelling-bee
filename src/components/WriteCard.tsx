@@ -47,7 +47,7 @@ export function WriteCard({ word, info, hasNext, onCorrect, onSkip, playModel }:
     e?.preventDefault()
     unlockAudio()
     if (settled.current) return
-    const typed = value.trim()
+    const typed = value.trim().replace(/[\u2018\u2019]/g, "'")
     if (!typed) return
     if (typed.toLowerCase() === word.toLowerCase()) {
       settled.current = true

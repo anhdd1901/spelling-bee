@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { WordInfo } from '../lib/lookup'
 
@@ -10,9 +10,11 @@ vi.mock('../lib/lookup', async (importActual) => ({
   lookupCached: (w: string) => lookup(w),
 }))
 const play = vi.fn().mockResolvedValue('audio')
+const stop = vi.fn()
 vi.mock('../lib/audio', () => ({
   unlockAudio: vi.fn(),
   playPronunciation: (...a: unknown[]) => play(...a),
+  stopPlayback: () => stop(),
 }))
 vi.mock('../lib/sfx', () => ({ playDing: vi.fn(), playBuzz: vi.fn(), playFanfare: vi.fn() }))
 
@@ -325,5 +327,20 @@ describe('PracticeScreen luyện viết', () => {
     expect(box()).toHaveAttribute('autocapitalize', 'off')
     expect(box()).toHaveAttribute('spellcheck', 'false')
     expect(box()).toHaveFocus()
+  })
+
+  it('gõ dấu nháy cong của iPhone (don’t) vẫn đúng cho từ don\'t', async () => {
+    await mount(["don't"])
+    type('don’t')
+    done()
+    await settle(RIGHT_MS)
+    expect(playDing).toHaveBeenCalledTimes(1)
+  })
+
+  it('rời màn luyện (unmount) thì dừng tiếng mẫu', async () => {
+    await mount(['cat'])
+    stop.mockClear()
+    cleanup()
+    expect(stop).toHaveBeenCalled()
   })
 })
