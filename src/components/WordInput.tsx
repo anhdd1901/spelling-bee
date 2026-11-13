@@ -63,11 +63,11 @@ export function WordInput({ onAdd, onPhoto }: Props) {
       <div className="photo-row">
         <label className="btn btn-photo camera">
           <input type="file" accept="image/*" capture="environment" onChange={pick} hidden />
-          <span aria-hidden>📸</span> Chụp ảnh
+          <img className="btn-icon" src="/icons/camera.webp" alt="" width={32} height={32} /> Chụp ảnh
         </label>
         <label className="btn btn-photo upload">
-          <input type="file" accept="image/*" onChange={pick} hidden />
-          <span aria-hidden>🖼️</span> Tải ảnh lên
+          <input type="file" accept="image/*,application/pdf" onChange={pick} hidden />
+          <img className="btn-icon" src="/icons/folder.webp" alt="" width={32} height={32} /> Tải ảnh / PDF
         </label>
       </div>
     </section>

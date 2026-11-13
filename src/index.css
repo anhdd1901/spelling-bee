@@ -102,6 +102,7 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 .btn-photo { flex: 1; cursor: pointer; }
 .btn-photo.camera { background: #ffd0dc; }
 .btn-photo.upload { background: #cfeeff; }
+.btn-photo .btn-icon { width: 34px; height: 34px; flex: none; margin: -4px 0; }
 .btn-ghost { background: #f3efff; }
 .btn-danger { background: var(--pink); color: #fff; }
 .btn-listen.us { background: var(--blue); color: #fff; }
@@ -357,6 +358,7 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
   .big-input { font-size: 1.2rem; padding: 8px 12px; border-radius: 16px; }
   .btn { font-size: 1.05rem; padding: 4px 12px; min-height: 50px; border-radius: 16px; }
   .photo-row { margin-top: 10px; gap: 8px; }
+  .btn-photo .btn-icon { width: 28px; height: 28px; }
 
   .detail { gap: 6px 12px; padding: 12px 14px 14px 12px; }
   .detail-word { font-size: 2.2rem; text-shadow: 2px 2px 0 var(--shadow); }

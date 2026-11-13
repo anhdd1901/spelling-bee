@@ -9,7 +9,7 @@ Spelling Bee: web app frontend-only cho trẻ 5–10 tuổi. Nhập từ tiếng
 - Backlog: [docs/backlog.md](docs/backlog.md)
 
 ## Công nghệ
-Vite 8 + React 19 + TypeScript 7, Vitest 5 + Testing Library (jsdom), tesseract.js 7 (OCR trong trình duyệt), @dnd-kit (kéo-thả), emojibase-data (dev, dựng bảng emoji).
+Vite 8 + React 19 + TypeScript 7, Vitest 5 + Testing Library (jsdom), tesseract.js 7 (OCR trong trình duyệt), pdfjs-dist 6 (đọc PDF, nạp lười), @dnd-kit (kéo-thả), emojibase-data (dev, dựng bảng emoji).
 
 ## Lệnh
 - Cài: `npm install`
@@ -20,10 +20,10 @@ Vite 8 + React 19 + TypeScript 7, Vitest 5 + Testing Library (jsdom), tesseract.
 - Deploy: push lên `main` (Vercel tự build), hoặc `npx vercel deploy --prod`. Production: https://spelling-bee-blue.vercel.app
 
 ## Cấu trúc thư mục
-- `src/lib/` – logic thuần: `words.ts` (tách/chuẩn hóa từ), `storage.ts`, `oxford.ts` (parse HTML Oxford), `lookup.ts` (gom dữ liệu + cache), `translate.ts`, `images.ts`, `audio.ts`, `ocr.ts`, `fetchProxy.ts`, `practice.ts` (chọn từ cho lượt, trạng thái lượt, điểm, số lần bỏ qua), `speech.ts` (so khớp giọng nói, bảng đồng âm, bọc `SpeechRecognition`), `sfx.ts` (tiếng tinh/è bằng Web Audio).
+- `src/lib/` – logic thuần: `words.ts` (tách/chuẩn hóa từ), `storage.ts`, `oxford.ts` (parse HTML Oxford), `lookup.ts` (gom dữ liệu + cache), `translate.ts`, `images.ts`, `audio.ts`, `ocr.ts`, `pdf.ts` (đọc từ trong PDF: lớp chữ hoặc OCR trang scan), `fetchProxy.ts`, `practice.ts` (chọn từ cho lượt, trạng thái lượt, điểm, số lần bỏ qua), `speech.ts` (so khớp giọng nói, bảng đồng âm, bọc `SpeechRecognition`), `sfx.ts` (tiếng tinh/è bằng Web Audio).
 - `src/components/` – UI: `WordInput`, `PhotoImport` (dùng `Sheet`), `WordCard` (kéo-thả), `WordDetail` (khối thay chỗ header, không phải popup), `FitText` (chữ một dòng, tự thu nhỏ). Luyện tập: `PracticeScreen` (khung, lượt, làm lại) + `PracticeResults`, `SpeakCard`, `WriteCard`, `SwipeCard` (thẻ vuốt, dùng một lần cho mỗi từ) + `useFeedback`, `Honeycomb` (tiến độ).
 - `src/data/emoji-index.json` – bảng từ → emoji 3D (file sinh ra); `scripts/` – script dựng bảng + `emoji-overrides.json`.
-- `public/` – manifest, service worker, icon.
+- `public/` – manifest, service worker, icon; `public/icons/` – icon 3D của nút Chụp ảnh / Tải ảnh / PDF.
 - `api/oxford.ts` – hàm serverless Vercel `GET /api/oxford?q=word` (logic ở `src/server/oxfordProxy.ts`): lấy trang Oxford phía server, cache CDN 1 ngày. Import trong `api/` phải có đuôi `.js` (Node ESM).
 
 ## Quy tắc then chốt
@@ -45,6 +45,7 @@ Vite 8 + React 19 + TypeScript 7, Vitest 5 + Testing Library (jsdom), tesseract.
 - Số lần bỏ qua lưu ở `spelling-kids:skips:<speak|write>:v1`; xóa từ thì `App` dọn số liệu bằng `pruneSkips`.
 - `.practice` nằm trong `.app` (flex), không tự đặt `100dvh`. CSS của màn luyện phải bọc trong `.practice …` khi trùng tên class với màn chính (ví dụ `.icon-btn`, `.no-sound`). Bố cục gọn khi bàn phím điện thoại mở dùng class `kb-open` (theo `visualViewport`), vì media query chiều cao không chạy khi bàn phím bật.
 - Còn worktree trong `.claude/worktrees/` thì `npx vitest run` ở thư mục gốc quét cả bản sao đó (React trùng → hàng loạt test lỗi giả): dọn worktree trước, hoặc chạy test ngay trong worktree.
-- Ảnh mẫu để thử OCR: `docs/samples/ocr-test.png`.
+- Ảnh mẫu để thử OCR: `docs/samples/ocr-test.png`; PDF mẫu: `docs/samples/pdf-text-12pages.pdf` (có chữ, 12 trang), `docs/samples/pdf-scan.pdf` (scan).
+- pdf.js vẽ trang phải dùng `intent: 'print'`: chế độ mặc định chờ `requestAnimationFrame`, sẽ treo khi tab ở nền (hoặc pane trình duyệt của Claude bị ẩn). `destroy()` nằm ở loading task, không ở document.
 - tesseract.js tải worker + dữ liệu ngôn ngữ từ CDN ở lần dùng đầu (~10MB), nên cần mạng.
 - Audio trên iOS chỉ phát được khi gắn với thao tác bấm của người dùng: gọi `play()` ngay trong handler click.

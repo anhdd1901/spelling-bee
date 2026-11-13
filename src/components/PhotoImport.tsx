@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { wordsFromImage } from '../lib/ocr'
+import { isPdf, MAX_PDF_PAGES, wordsFromPdf } from '../lib/pdf'
 import { Sheet } from './Sheet'
 
 interface Props {
@@ -10,28 +11,43 @@ interface Props {
 }
 
 export function PhotoImport({ file, existing, onAdd, onClose }: Props) {
-  const preview = useMemo(() => URL.createObjectURL(file), [file])
+  const pdf = isPdf(file)
+  const [preview, setPreview] = useState<string | null>(null)
   const [progress, setProgress] = useState(0)
   const [words, setWords] = useState<string[] | null>(null)
+  const [truncated, setTruncated] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [error, setError] = useState('')
 
-  const close = () => {
-    URL.revokeObjectURL(preview)
-    onClose()
-  }
-
   useEffect(() => {
     let alive = true
-    wordsFromImage(file, (p) => alive && setProgress(p))
-      .then((ws) => {
+    const ctl = new AbortController()
+    let url: string | undefined
+    const show = (blob: Blob) => {
+      if (!alive) return
+      url = URL.createObjectURL(blob)
+      setPreview(url)
+    }
+    const onProgress = (p: number) => alive && setProgress(p)
+    const job = pdf
+      ? wordsFromPdf(file, { onProgress, onPreview: show, signal: ctl.signal })
+      : (show(file), wordsFromImage(file, onProgress).then((ws) => ({ words: ws, truncated: false })))
+    job
+      .then((r) => {
         if (!alive) return
-        setWords(ws)
-        setSelected(new Set(ws.filter((w) => !existing.has(w.toLowerCase()))))
+        setWords(r.words)
+        setTruncated(r.truncated)
+        setSelected(new Set(r.words.filter((w) => !existing.has(w.toLowerCase()))))
       })
-      .catch(() => alive && setError('Ôi, không đọc được ảnh này. Thử ảnh rõ hơn nhé!'))
+      .catch(
+        () =>
+          alive &&
+          setError(pdf ? 'Ôi, không mở được file PDF này. Thử file khác nhé!' : 'Ôi, không đọc được ảnh này. Thử ảnh rõ hơn nhé!'),
+      )
     return () => {
       alive = false
+      ctl.abort()
+      if (url) URL.revokeObjectURL(url)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file])
@@ -47,19 +63,22 @@ export function PhotoImport({ file, existing, onAdd, onClose }: Props) {
   const chosen = words?.filter((w) => selected.has(w)) ?? []
 
   return (
-    <Sheet title="Từ trong ảnh" onClose={close}>
+    <Sheet title={pdf ? 'Từ trong tài liệu' : 'Từ trong ảnh'} onClose={onClose}>
       <div className="ocr">
-        <img className="ocr-preview" src={preview} alt="Ảnh bé vừa chọn" />
+        {preview && (
+          <img className="ocr-preview" src={preview} alt={pdf ? 'Trang đầu của tài liệu' : 'Ảnh bé vừa chọn'} />
+        )}
         {error && <p className="hint error">{error}</p>}
         {!words && !error && (
           <div className="ocr-loading" role="status" aria-live="polite">
-            <p>🔍 Đang tìm chữ trong ảnh…</p>
+            <p>🔍 Đang tìm chữ trong {pdf ? 'tài liệu' : 'ảnh'}…</p>
             <div className="progress" aria-hidden>
               <div className="progress-bar" style={{ width: `${Math.round(progress * 100)}%` }} />
             </div>
           </div>
         )}
-        {words && words.length === 0 && <p className="hint">Không thấy từ tiếng Anh nào. Thử ảnh khác nhé! 🙈</p>}
+        {words && words.length === 0 && <p className="hint">Không thấy từ tiếng Anh nào. Thử {pdf ? 'file' : 'ảnh'} khác nhé! 🙈</p>}
+        {truncated && <p className="hint">📄 Chỉ đọc {MAX_PDF_PAGES} trang đầu của tài liệu.</p>}
         {words && words.length > 0 && (
           <>
             <p className="hint">Chạm vào từ để chọn hoặc bỏ chọn:</p>
@@ -94,7 +113,7 @@ export function PhotoImport({ file, existing, onAdd, onClose }: Props) {
                 disabled={!chosen.length}
                 onClick={() => {
                   onAdd(chosen)
-                  close()
+                  onClose()
                 }}
               >
                 ➕ Thêm {chosen.length} từ

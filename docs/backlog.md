@@ -10,3 +10,4 @@
 - minor (deferred) plan-1: iOS — lần đọc mẫu sau khi tra từ xong chạy ngoài thao tác bấm, dựa vào `unlockAudio` đã mở khóa trước đó.
 - minor (deferred) plan-1: luyện nói/viết chưa chuyển focus khi đổi thẻ hay sang màn kết quả; gõ sai chỉ báo bằng tiếng, chưa có chữ cho trình đọc màn hình; nhãn tổ ong ở màn kết quả đọc là "Từ 18 trên 18".
 - minor (deferred) plan-1: `kb-open` có thể bật cả khi phóng to bằng hai ngón tay; nếu bé bấm 🎤 giữa chuỗi dự phòng của `playPronunciation` (mp3 hỏng → giọng máy) thì bước dự phòng sau vẫn có thể phát tiếng.
+- Chưa thử tải PDF trên iPhone/Android thật (chọn file PDF từ Tệp/Drive, tốc độ OCR trang scan trên máy yếu).
