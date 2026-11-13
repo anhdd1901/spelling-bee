@@ -24,6 +24,7 @@ const play = vi.fn().mockResolvedValue('audio')
 vi.mock('./lib/audio', () => ({
   unlockAudio: vi.fn(),
   playPronunciation: (...a: unknown[]) => play(...a),
+  stopPlayback: vi.fn(),
 }))
 
 vi.mock('./lib/sfx', () => ({
