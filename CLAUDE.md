@@ -1,10 +1,11 @@
 Đọc hết file này trước khi làm việc.
 
 ## Tổng quan
-Spelling Bee: web app frontend-only cho trẻ 5–10 tuổi. Nhập từ tiếng Anh (gõ phím hoặc OCR từ ảnh), bấm để nghe phát âm Oxford và xem thẻ chi tiết (từ loại, nghĩa tiếng Việt, hình).
+Spelling Bee: web app frontend-only cho trẻ 5–10 tuổi. Nhập từ tiếng Anh (gõ phím hoặc OCR từ ảnh), bấm để nghe phát âm Oxford và xem thẻ chi tiết (từ loại, nghĩa tiếng Việt, hình). Có màn luyện nói (nhận dạng giọng nói) và luyện viết (nghe rồi gõ), mỗi lượt 15–20 từ, chấm điểm cuối lượt.
 
 ## Tài liệu
 - Spec: [docs/superpowers/specs/2026-11-10-spelling-kids-design.md](docs/superpowers/specs/2026-11-10-spelling-kids-design.md)
+- Kế hoạch đã làm: [docs/superpowers/plans/2026-11-13-practice-modes.md](docs/superpowers/plans/2026-11-13-practice-modes.md) (luyện nói/viết)
 - Backlog: [docs/backlog.md](docs/backlog.md)
 
 ## Công nghệ
@@ -19,8 +20,8 @@ Vite 8 + React 19 + TypeScript 7, Vitest 5 + Testing Library (jsdom), tesseract.
 - Deploy: push lên `main` (Vercel tự build), hoặc `npx vercel deploy --prod`. Production: https://spelling-bee-blue.vercel.app
 
 ## Cấu trúc thư mục
-- `src/lib/` – logic thuần: `words.ts` (tách/chuẩn hóa từ), `storage.ts`, `oxford.ts` (parse HTML Oxford), `lookup.ts` (gom dữ liệu + cache), `translate.ts`, `images.ts`, `audio.ts`, `ocr.ts`, `fetchProxy.ts`.
-- `src/components/` – UI: `WordInput`, `PhotoImport` (dùng `Sheet`), `WordCard` (kéo-thả), `WordDetail` (khối thay chỗ header, không phải popup), `FitText` (chữ một dòng, tự thu nhỏ).
+- `src/lib/` – logic thuần: `words.ts` (tách/chuẩn hóa từ), `storage.ts`, `oxford.ts` (parse HTML Oxford), `lookup.ts` (gom dữ liệu + cache), `translate.ts`, `images.ts`, `audio.ts`, `ocr.ts`, `fetchProxy.ts`, `practice.ts` (chọn từ cho lượt, trạng thái lượt, điểm, số lần bỏ qua), `speech.ts` (so khớp giọng nói, bảng đồng âm, bọc `SpeechRecognition`), `sfx.ts` (tiếng tinh/è bằng Web Audio).
+- `src/components/` – UI: `WordInput`, `PhotoImport` (dùng `Sheet`), `WordCard` (kéo-thả), `WordDetail` (khối thay chỗ header, không phải popup), `FitText` (chữ một dòng, tự thu nhỏ). Luyện tập: `PracticeScreen` (khung, lượt, làm lại) + `PracticeResults`, `SpeakCard`, `WriteCard`, `SwipeCard` (thẻ vuốt, dùng một lần cho mỗi từ) + `useFeedback`, `Honeycomb` (tiến độ).
 - `src/data/emoji-index.json` – bảng từ → emoji 3D (file sinh ra); `scripts/` – script dựng bảng + `emoji-overrides.json`.
 - `public/` – manifest, service worker, icon.
 - `api/oxford.ts` – hàm serverless Vercel `GET /api/oxford?q=word` (logic ở `src/server/oxfordProxy.ts`): lấy trang Oxford phía server, cache CDN 1 ngày. Import trong `api/` phải có đuôi `.js` (Node ESM).
@@ -39,6 +40,10 @@ Vite 8 + React 19 + TypeScript 7, Vitest 5 + Testing Library (jsdom), tesseract.
 - Trang khóa cuộn (`body { overflow: hidden }`), chỉ `.words-scroll` cuộn; phần tử mới đặt ở `.top` thì phải giữ chiều cao gọn.
 - Bảng emoji (`src/data/emoji-index.json`) là file sinh ra: sửa `scripts/emoji-overrides.json` rồi chạy `node scripts/build-emoji-index.mjs` (cần mạng), không sửa tay file JSON.
 - Kéo-thả (@dnd-kit): animation của `.card` phải dùng `backwards`, không dùng `both`, nếu không transform của animation sẽ đè transform kéo-thả.
+- Luyện nói dùng Web Speech API: Firefox không có, Chrome cần mạng. `listenOnce()` (tức `recognition.start()`), `unlockAudio()` và `primeSfx()` phải gọi đồng bộ trong handler click (iOS). Gọi `stopPlayback()` trước khi mở micro để tiếng mẫu không bị chấm là tiếng bé. Từ đồng âm thêm vào `HOMOPHONES` trong `speech.ts`.
+- `SwipeCard`/`useFeedback` chỉ dùng cho một từ: đổi từ thì remount bằng `key` mới; thẻ phải truyền `onLeave={lock}` để bỏ qua và làm đúng không cùng xảy ra; nút Bỏ qua đi qua `skipSignal` để trượt giống thao tác gạt.
+- Số lần bỏ qua lưu ở `spelling-kids:skips:<speak|write>:v1`; xóa từ thì `App` dọn số liệu bằng `pruneSkips`.
+- `.practice` nằm trong `.app` (flex), không tự đặt `100dvh`.
 - Ảnh mẫu để thử OCR: `docs/samples/ocr-test.png`.
 - tesseract.js tải worker + dữ liệu ngôn ngữ từ CDN ở lần dùng đầu (~10MB), nên cần mạng.
 - Audio trên iOS chỉ phát được khi gắn với thao tác bấm của người dùng: gọi `play()` ngay trong handler click.

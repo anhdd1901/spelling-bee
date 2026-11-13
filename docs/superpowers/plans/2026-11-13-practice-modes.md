@@ -398,10 +398,10 @@ it('không hỗ trợ: không có nút 🎤, có thông báo, Bỏ qua ⏭ vẫn
 it('PracticeScreen mode="speak" render SpeakCard, tiêu đề "Luyện nói"', …)
 ```
 
-- [ ] **Step 2:** `npx vitest run src/components/SpeakCard.test.tsx` → FAIL.
-- [ ] **Step 3:** Viết `SpeakCard.tsx`, nối vào `PracticeScreen`, CSS (nút micro, vòng sóng, dòng thông báo).
-- [ ] **Step 4:** `npx vitest run src/components` → PASS; lint + build sạch.
-- [ ] **Step 5:** Commit `feat(plan-1/task-5): speaking practice`.
+- [x] **Step 2:** `npx vitest run src/components/SpeakCard.test.tsx` → FAIL.
+- [x] **Step 3:** Viết `SpeakCard.tsx`, nối vào `PracticeScreen`, CSS (nút micro, vòng sóng, dòng thông báo).
+- [x] **Step 4:** `npx vitest run src/components` → PASS; lint + build sạch.
+- [x] **Step 5:** Commit `feat(plan-1/task-5): speaking practice`.
 
 ---
 
@@ -432,10 +432,10 @@ it('xóa từ thì số lần bỏ qua của từ đó cũng bị xóa ở cả 
 - [x] **Step 2:** `npx vitest run src/App.test.tsx` → FAIL.
 - [x] **Step 3:** Sửa `App.tsx` và CSS.
 - [x] **Step 4:** `npx vitest run` (toàn bộ) → PASS; `npm run lint && npm run build` sạch.
-- [ ] **Step 5: Chạy thử trên trình duyệt** (`npm run dev`, skill `agent-browser`), ở 2 cỡ màn 390×844 và 1280×800, chụp màn hình từng bước:
+- [x] **Step 5: Chạy thử trên trình duyệt** (`npm run dev`, skill `agent-browser`), ở 2 cỡ màn 390×844 và 1280×800, chụp màn hình từng bước:
   - Thêm 3–4 từ, vào Luyện viết: nghe mẫu, gõ sai (thẻ lắc, ô bị xóa), gõ đúng (thẻ trượt, ô tổ ong đầy mật), bỏ qua bằng nút và bằng kéo chuột, màn kết quả, làm lại một từ, lượt mới, quay lại.
   - Vào Luyện nói: chạm thẻ nghe mẫu, bỏ qua, màn kết quả. Micro thật không thử được trong môi trường tự động: ghi rõ trong báo cáo là phần nhận dạng chỉ mới qua test giả lập.
   - Kiểm tra: không có thanh cuộn ngang, nút ≥ 48px, màn chính không cao thêm ở 390px, chế độ giảm chuyển động (mờ dần thay cho trượt/lắc).
   - Sửa lỗi giao diện tìm thấy rồi chạy lại Step 4.
-- [ ] **Step 6:** Cập nhật `CLAUDE.md` và `docs/backlog.md`.
-- [ ] **Step 7:** Commit `feat(plan-1/task-6): practice entry points, docs and browser check`.
+- [x] **Step 6:** Cập nhật `CLAUDE.md` và `docs/backlog.md`.
+- [x] **Step 7:** Commit `feat(plan-1/task-6): practice entry points, docs and browser check`.
