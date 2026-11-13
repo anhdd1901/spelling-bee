@@ -26,6 +26,17 @@ vi.mock('./lib/audio', () => ({
   playPronunciation: (...a: unknown[]) => play(...a),
 }))
 
+vi.mock('./lib/sfx', () => ({
+  primeSfx: vi.fn(),
+  playDing: vi.fn(),
+  playBuzz: vi.fn(),
+  playFanfare: vi.fn(),
+}))
+vi.mock('./lib/speech', async (importActual) => ({
+  ...(await importActual<typeof import('./lib/speech')>()),
+  speechSupported: () => false,
+}))
+
 import App from './App'
 
 describe('App', () => {
@@ -172,5 +183,47 @@ describe('App', () => {
     expect(screen.queryByRole('button', { name: 'Nghe và xem từ diswasher' })).not.toBeInTheDocument()
     expect(play).toHaveBeenLastCalledWith([undefined, 'https://ox/us/cat.mp3'], 'dishwasher')
     expect(JSON.parse(localStorage.getItem('spelling-kids:words:v1')!)[0].text).toBe('dishwasher')
+  })
+  it('practice buttons are disabled when the list is empty', () => {
+    render(<App />)
+    expect(screen.getByRole('button', { name: '🎤 Luyện nói' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '✏️ Luyện viết' })).toBeDisabled()
+  })
+
+  it('writing practice replaces the list, and back returns with the words intact', async () => {
+    const u = userEvent.setup()
+    render(<App />)
+    await u.type(screen.getByLabelText('Từ tiếng Anh'), 'cat dog{Enter}')
+    await u.click(screen.getByRole('button', { name: '✏️ Luyện viết' }))
+    expect(await screen.findByLabelText('Bé viết từ vừa nghe')).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Danh sách từ' })).not.toBeInTheDocument()
+    await u.click(screen.getByRole('button', { name: 'Quay lại danh sách' }))
+    expect(screen.getByRole('button', { name: 'Xóa từ cat' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Xóa từ dog' })).toBeInTheDocument()
+  })
+
+  it('speaking practice shows its title', async () => {
+    const u = userEvent.setup()
+    render(<App />)
+    await u.type(screen.getByLabelText('Từ tiếng Anh'), 'cat dog{Enter}')
+    await u.click(screen.getByRole('button', { name: '🎤 Luyện nói' }))
+    expect(await screen.findByRole('heading', { name: 'Luyện nói' })).toBeInTheDocument()
+  })
+
+  it('deleting a word also prunes its skip counts in both modes', async () => {
+    localStorage.setItem('spelling-kids:skips:write:v1', JSON.stringify({ cat: 2, dog: 1 }))
+    localStorage.setItem('spelling-kids:skips:speak:v1', JSON.stringify({ cat: 3 }))
+    localStorage.setItem(
+      'spelling-kids:words:v1',
+      JSON.stringify([
+        { id: 'a', text: 'cat' },
+        { id: 'b', text: 'dog' },
+      ]),
+    )
+    const u = userEvent.setup()
+    render(<App />)
+    await u.click(screen.getByRole('button', { name: 'Xóa từ cat' }))
+    expect(JSON.parse(localStorage.getItem('spelling-kids:skips:write:v1')!)).toEqual({ dog: 1 })
+    expect(JSON.parse(localStorage.getItem('spelling-kids:skips:speak:v1')!)).toEqual({})
   })
 })

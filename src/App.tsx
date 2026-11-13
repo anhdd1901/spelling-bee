@@ -12,11 +12,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { PhotoImport } from './components/PhotoImport'
 import { WordCard } from './components/WordCard'
 import { WordDetail } from './components/WordDetail'
+import { PracticeScreen } from './components/PracticeScreen'
 import { WordInput } from './components/WordInput'
 import { playPronunciation, unlockAudio, type PlayResult } from './lib/audio'
 import { getCached, lookupCached, usAudioUrls, type WordInfo } from './lib/lookup'
 import { POS_COLORS } from './lib/pos'
-import { addWords, correctWord, loadWords, moveWord, removeWord, removeWords, saveWords, type WordItem } from './lib/storage'
+import { pruneSkips, type Mode } from './lib/practice'
+import { addWords, correctWord, loadSkipCounts, loadWords, moveWord, removeWord, removeWords, saveSkipCounts, saveWords, type WordItem } from './lib/storage'
 
 /** Nghỉ giữa hai lần tra nền: proxy Oxford chỉ cho khoảng 60 lượt mỗi phút. */
 const PREFETCH_GAP_MS = 1100
@@ -36,6 +38,7 @@ export default function App() {
   const [query, setQuery] = useState('')
   /** null = không ở chế độ "Xóa nhiều"; Set = các id đang được chọn. */
   const [picked, setPicked] = useState<Set<string> | null>(null)
+  const [view, setView] = useState<'home' | Mode>('home')
   const [toast, setToast] = useState('')
   const toastTimer = useRef<number | undefined>(undefined)
   const openRef = useRef<string | null>(null)
@@ -52,7 +55,11 @@ export default function App() {
     if (over && active.id !== over.id) setWords((ws) => moveWord(ws, String(active.id), String(over.id)))
   }
 
-  useEffect(() => saveWords(words), [words])
+  useEffect(() => {
+    saveWords(words)
+    const texts = words.map((w) => w.text)
+    for (const mode of ['speak', 'write'] as const) saveSkipCounts(mode, pruneSkips(loadSkipCounts(mode), texts))
+  }, [words])
 
   const say = useCallback((msg: string) => {
     setToast(msg)
@@ -186,7 +193,30 @@ export default function App() {
     setOpenWord(null)
     openRef.current = null
   }, [])
+  const startPractice = (mode: Mode) => {
+    unlockAudio() // phải chạy ngay trong thao tác bấm
+    closeDetail()
+    setPicked(null)
+    setView(mode)
+  }
   const closePhoto = useCallback(() => setPhoto(null), [])
+
+  if (view !== 'home') {
+    return (
+      <div className="app">
+        <PracticeScreen
+          mode={view}
+          words={words.map((w) => w.text)}
+          infos={infos}
+          onInfo={remember}
+          onExit={() => setView('home')}
+        />
+        <div className={`toast ${toast ? 'show' : ''}`} role="status" aria-live="polite">
+          {toast}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="app">
@@ -214,9 +244,17 @@ export default function App() {
               <div className="logo" aria-hidden>
                 <span>🐝</span>
               </div>
-              <div>
+              <div className="hero-text">
                 <h1>Spelling Bee</h1>
                 <p className="tagline">Gõ hoặc chụp từ tiếng Anh, chạm để nghe đọc!</p>
+              </div>
+              <div className="hero-actions">
+                <button type="button" className="btn small btn-practice" disabled={words.length === 0} onClick={() => startPractice('speak')}>
+                  🎤 Luyện nói
+                </button>
+                <button type="button" className="btn small btn-practice" disabled={words.length === 0} onClick={() => startPractice('write')}>
+                  ✏️ Luyện viết
+                </button>
               </div>
             </header>
             <WordInput onAdd={handleAdd} onPhoto={setPhoto} />

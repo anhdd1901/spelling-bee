@@ -420,7 +420,7 @@ Quyết định:
 - `CLAUDE.md`: thêm vào *Cấu trúc thư mục* (`practice.ts`, `speech.ts`, `sfx.ts`, `PracticeScreen`, `PracticeResults`, `SpeakCard`, `WriteCard`, `SwipeCard`, `Honeycomb`) và *Lưu ý* (nhận dạng giọng nói cần Chrome/Safari và mạng; `recognition.start()` phải nằm trong handler click; thêm cặp đồng âm ở `HOMOPHONES`).
 - `docs/backlog.md`: thêm dòng "Thử luyện nói trên iPhone/Android thật, kể cả khi mở từ biểu tượng ngoài màn hình chính (PWA)".
 
-- [ ] **Step 1: Viết test (fail)** trong `App.test.tsx` (thêm mock `./lib/sfx`, `./lib/speech` với `speechSupported: () => false`):
+- [x] **Step 1: Viết test (fail)** trong `App.test.tsx` (thêm mock `./lib/sfx`, `./lib/speech` với `speechSupported: () => false`):
 
 ```ts
 it('danh sách rỗng: hai nút luyện bị khóa', …)
@@ -429,9 +429,9 @@ it('bấm "🎤 Luyện nói" → màn luyện nói có tiêu đề "Luyện nó
 it('xóa từ thì số lần bỏ qua của từ đó cũng bị xóa ở cả hai chế độ', …)
 ```
 
-- [ ] **Step 2:** `npx vitest run src/App.test.tsx` → FAIL.
-- [ ] **Step 3:** Sửa `App.tsx` và CSS.
-- [ ] **Step 4:** `npx vitest run` (toàn bộ) → PASS; `npm run lint && npm run build` sạch.
+- [x] **Step 2:** `npx vitest run src/App.test.tsx` → FAIL.
+- [x] **Step 3:** Sửa `App.tsx` và CSS.
+- [x] **Step 4:** `npx vitest run` (toàn bộ) → PASS; `npm run lint && npm run build` sạch.
 - [ ] **Step 5: Chạy thử trên trình duyệt** (`npm run dev`, skill `agent-browser`), ở 2 cỡ màn 390×844 và 1280×800, chụp màn hình từng bước:
   - Thêm 3–4 từ, vào Luyện viết: nghe mẫu, gõ sai (thẻ lắc, ô bị xóa), gõ đúng (thẻ trượt, ô tổ ong đầy mật), bỏ qua bằng nút và bằng kéo chuột, màn kết quả, làm lại một từ, lượt mới, quay lại.
   - Vào Luyện nói: chạm thẻ nghe mẫu, bỏ qua, màn kết quả. Micro thật không thử được trong môi trường tự động: ghi rõ trong báo cáo là phần nhận dạng chỉ mới qua test giả lập.
